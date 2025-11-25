@@ -13,4 +13,5 @@ packages:
   - packages/route-pattern/bench
   - packages/static-middleware/demos/*
   - packages/tar-parser/bench
+  - packages/fetch-router-extra/demo
   - scripts
