@@ -133,7 +133,7 @@ Create a parent middleware reference for type inheritance.
 
 ## Related Work
 
-- [@remix-run/headers](../headers) - A library for working with HTTP headers
+- [@remix-run/fetch-router](../fetch-router) - A library for working with HTTP headers
 
 ## License
 

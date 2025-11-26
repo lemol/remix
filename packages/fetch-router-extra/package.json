@@ -33,14 +33,12 @@
     }
   },
   "devDependencies": {
+    "@remix-run/route-pattern": "^0.15.3",
     "@types/node": "^24.6.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@remix-run/fetch-router": "workspace:^",
-    "@remix-run/form-data-parser": "workspace:^",
-    "@remix-run/headers": "workspace:^",
-    "@remix-run/route-pattern": "workspace:^"
+    "@remix-run/fetch-router": "workspace:^"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
