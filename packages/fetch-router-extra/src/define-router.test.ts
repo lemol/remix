@@ -1,8 +1,8 @@
 import * as assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { defineRouter, defineMiddleware, parentMiddleware } from './define-router.ts'
-import type { Middleware } from './middleware.ts'
+import { defineRouter } from './define-router.ts'
+import { type Middleware, use, withParent } from './middleware.ts'
 
 describe('defineRouter', () => {
   describe('single handler', () => {
@@ -88,7 +88,7 @@ describe('defineRouter', () => {
   })
 })
 
-describe('defineMiddleware', () => {
+describe('use', () => {
   it('returns middleware array when no parent', () => {
     let testMiddleware: Middleware<{ data: string }>[] = [
       (context) => {
@@ -96,7 +96,7 @@ describe('defineMiddleware', () => {
       },
     ]
 
-    let result = defineMiddleware(testMiddleware)
+    let result = use(testMiddleware)
 
     assert.equal(result, testMiddleware)
   })
@@ -114,7 +114,7 @@ describe('defineMiddleware', () => {
       },
     ]
 
-    let result = defineMiddleware(parentMiddleware<typeof parentMw>(), childMw)
+    let result = use(withParent<typeof parentMw>(), childMw)
 
     assert.ok(result)
     assert.equal(result.length, childMw.length)
@@ -136,7 +136,7 @@ describe('defineMiddleware', () => {
       },
     ]
 
-    let combined = defineMiddleware(parentMiddleware<typeof parentMw>(), childMw)
+    let combined = use(withParent<typeof parentMw>(), childMw)
     let _extra = extractExtraType(combined) satisfies { auth: boolean; formData: { title: string } }
 
     // Use in defineRouter to verify type safety
@@ -154,7 +154,9 @@ describe('defineMiddleware', () => {
   })
 })
 
-function extractExtraType<T extends Middleware<any>[]>(mw: T): T extends Middleware<infer extra>[] ? extra : never {
+function extractExtraType<T extends Middleware<any>[]>(
+  mw: T,
+): T extends Middleware<infer extra>[] ? extra : never {
   return null!
 }
 
@@ -177,10 +179,7 @@ describe('integration', () => {
       },
     ]
 
-    let combinedMiddleware = defineMiddleware(
-      parentMiddleware<typeof authMiddleware>(),
-      formMiddleware
-    )
+    let combinedMiddleware = use(withParent<typeof authMiddleware>(), formMiddleware)
 
     // Inner router with combined middleware
     let innerRouter = defineRouter({

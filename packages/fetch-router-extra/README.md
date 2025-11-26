@@ -66,17 +66,17 @@ let action = defineRouter(routes.posts.action, {
 
 ### Middleware Composition
 
-Use `defineMiddleware` and `parentMiddleware` to create middleware that inherits extra data from parent middleware:
+Use `use` and `withParent` to create middleware that inherits extra data from parent middleware:
 
 ```ts
-import { defineMiddleware, parentMiddleware } from '@remix-run/fetch-router-extra'
+import { use, withParent } from '@remix-run/fetch-router-extra'
 
 // Parent middleware
 let postsMiddleware = [authMiddleware]
 
 // Child middleware inherits from parent
-let postsActionMiddleware = defineMiddleware(
-  parentMiddleware<typeof postsMiddleware>(),
+let postsActionMiddleware = use(
+  withParent<typeof postsMiddleware>(),
   [formDataParser(schema)]
 )
 
@@ -123,11 +123,11 @@ Define a route tree with type-safe middleware data.
 
 Define a single route handler with type-safe middleware data.
 
-### `defineMiddleware(parent, middleware)`
+### `use(parent, middleware)`
 
 Create middleware that inherits extra data from parent middleware.
 
-### `parentMiddleware<T>()`
+### `withParent<T>()`
 
 Create a parent middleware reference for type inheritance.
 

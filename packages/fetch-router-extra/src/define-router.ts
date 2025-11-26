@@ -9,13 +9,11 @@ import type { RouteMap } from '@remix-run/fetch-router'
 import type { Params, RoutePattern } from '@remix-run/route-pattern'
 import type { Middleware } from './middleware.ts'
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I,
-) => void
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
-type ExtractExtra<M extends Middleware[]> = UnionToIntersection<
+export type ExtractExtra<M extends Middleware[]> = UnionToIntersection<
   NonNullable<M[number]['__extra']>
 >
 
@@ -59,19 +57,19 @@ type RouteHandlersExtraWithoutMiddleware<routes extends RouteMap, extra = unknow
 type GetParams<R> = R extends string
   ? Params<R>
   : R extends RoutePattern<infer P extends string>
-  ? Params<P>
-  : R extends Route<infer _, infer P extends string>
-  ? Params<P>
-  : Params<string>
+    ? Params<P>
+    : R extends Route<infer _, infer P extends string>
+      ? Params<P>
+      : Params<string>
 
 type GetMethod<R> = R extends Route<infer M, infer _> ? M : 'ANY'
 
 /**
  * Define a route handler with type-safe middleware data.
- * 
+ *
  * Middleware data is automatically extracted and made available in the handler's
  * `extra` parameter with full type safety.
- * 
+ *
  * @example
  * ```ts
  * defineRouter({
@@ -94,13 +92,11 @@ export function defineRouter<
   ) => Response | Promise<Response>
 }): {
   middleware: M
-  handler: (
-    context: RequestContext<method, Params<pattern>>,
-  ) => Response | Promise<Response>
+  handler: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>
 }
 /**
  * Define a route tree with type-safe middleware data.
- * 
+ *
  * @example
  * ```ts
  * defineRouter(routes.posts, {
@@ -114,10 +110,7 @@ export function defineRouter<
  * })
  * ```
  */
-export function defineRouter<
-  M extends Middleware[],
-  routes extends RouteMap,
->(
+export function defineRouter<M extends Middleware[], routes extends RouteMap>(
   routes: routes,
   options: {
     middleware: M
@@ -126,7 +119,7 @@ export function defineRouter<
 ): RouteHandlers<routes>
 /**
  * Define a single route handler with type-safe middleware data.
- * 
+ *
  * @example
  * ```ts
  * defineRouter(routes.posts.action, {
@@ -138,10 +131,7 @@ export function defineRouter<
  * })
  * ```
  */
-export function defineRouter<
-  M extends Middleware[],
-  route extends string | RoutePattern | Route,
->(
+export function defineRouter<M extends Middleware[], route extends string | RoutePattern | Route>(
   route: route,
   options: {
     middleware: M
@@ -154,59 +144,4 @@ export function defineRouter<
 ): BuildRouteHandler<GetMethod<route>, route>
 export function defineRouter(routeOrOptions: any, options?: any) {
   return options ?? routeOrOptions
-}
-
-class ParentMiddleware<middlewares extends Middleware[]> {
-  constructor(_parent: middlewares) {}
-}
-
-type ExtractExtraFromParentMiddleware<Parent extends ParentMiddleware<any>> =
-  Parent extends ParentMiddleware<infer middlewares>
-    ? ExtractExtra<middlewares>
-    : never
-
-/**
- * Define middleware that inherits extra data from parent middleware.
- * 
- * Use with `parentMiddleware` to create middleware that has access to both
- * parent and local middleware data.
- * 
- * @example
- * ```ts
- * let postsMiddleware = [authMiddleware]
- * let postsActionMiddleware = defineMiddleware(
- *   parentMiddleware<typeof postsMiddleware>(),
- *   [formDataParser(schema)]
- * )
- * // postsActionMiddleware now has both auth and formData in extra
- * ```
- */
-export function defineMiddleware<
-  M extends Middleware[],
-  Parent extends ParentMiddleware<any>
->(parent: Parent, middleware: M): Middleware<
-  ExtractExtraFromParentMiddleware<Parent> & ExtractExtra<M>
->[]
-export function defineMiddleware<M extends Middleware[]>(middleware: M): M
-export function defineMiddleware(parentOrMiddleware: any, middleware?: any) {
-  return middleware ?? parentOrMiddleware
-}
-
-/**
- * Create a parent middleware reference for type inheritance.
- * 
- * Used with `defineMiddleware` to pass parent middleware types without
- * requiring the runtime parent object.
- * 
- * @example
- * ```ts
- * let postsMiddleware = [authMiddleware]
- * let childMiddleware = defineMiddleware(
- *   parentMiddleware<typeof postsMiddleware>(),
- *   [loggerMiddleware]
- * )
- * ```
- */
-export function parentMiddleware<M extends Middleware[]>() {
-  return new ParentMiddleware<M>(null!)
 }
