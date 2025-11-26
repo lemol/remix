@@ -33,7 +33,7 @@
     }
   },
   "devDependencies": {
-    "@remix-run/route-pattern": "^0.15.3",
+    "@remix-run/route-pattern": "workspace:^",
     "@types/node": "^24.6.0",
     "typescript": "^5.9.3"
   },

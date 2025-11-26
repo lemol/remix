@@ -298,8 +298,8 @@ importers:
         version: link:../fetch-router
     devDependencies:
       '@remix-run/route-pattern':
-        specifier: ^0.15.3
-        version: 0.15.3
+        specifier: workspace:^
+        version: link:../route-pattern
       '@types/node':
         specifier: ^24.6.0
         version: 24.6.0
@@ -2007,9 +2007,6 @@ packages:
 
   '@remix-run/events@0.0.0-experimental-remix-jam.5':
     resolution: {integrity: sha512-rbKP27/YkLZq0gbCy3QpwaHQzJg41IgbC//8SggPgMtWxZdxkcnkWmQGMLH0xwQcBlZ3yLtZRDQvL+ir4GAA6g==}
-
-  '@remix-run/route-pattern@0.15.3':
-    resolution: {integrity: sha512-7s4Oy9q6Oz9Vfwg0iZscpmYVASNG9fLqbCa+YY0+SWKksDpvCRiW46xp3S3zEvT7zEP7G55FKA+JdrqqK2AOXw==}
 
   '@remix-run/style@0.0.0-experimental-remix-jam.5':
     resolution: {integrity: sha512-XXCOWiY6lGqeJrGQ47JP5fFFuZXbBsFjBbTu46FNxsox1cny8ZPyZ7C674kX92UimGpOU+zv/lPOoU+ZWGim+w==}
@@ -4626,8 +4623,6 @@ snapshots:
       '@remix-run/style': 0.0.0-experimental-remix-jam.5
 
   '@remix-run/events@0.0.0-experimental-remix-jam.5': {}
-
-  '@remix-run/route-pattern@0.15.3': {}
 
   '@remix-run/style@0.0.0-experimental-remix-jam.5': {}
 
