@@ -1,6 +1,6 @@
 {
   "name": "@remix-run/static-middleware",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "Middleware for serving static files from the filesystem",
   "author": "Michael Jackson <mjijackson@gmail.com>",
   "license": "MIT",
@@ -35,21 +35,25 @@
     "@remix-run/fetch-router": "workspace:*",
     "@remix-run/form-data-middleware": "workspace:*",
     "@remix-run/method-override-middleware": "workspace:*",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.3"
+    "@remix-run/mime": "workspace:*",
+    "@remix-run/response": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "@remix-run/fetch-router": "workspace:^",
     "@remix-run/fs": "workspace:^",
     "@remix-run/html-template": "workspace:^",
+    "@remix-run/mime": "workspace:^",
     "@remix-run/response": "workspace:^"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsgo -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
     "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [
     "fetch",
@@ -57,8 +61,5 @@
     "middleware",
     "static-files",
     "file-server"
-  ],
-  "dependencies": {
-    "mrmime": "^2.0.0"
-  }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@remix-run/lazy-file",
-  "version": "4.0.0",
+  "version": "4.2.0",
   "description": "Lazy, streaming files for JavaScript",
   "author": "Michael Jackson <mjijackson@gmail.com>",
   "repository": {
@@ -31,19 +31,20 @@
       "./package.json": "./package.json"
     }
   },
-  "dependencies": {
-    "mrmime": "^2.0.0"
+  "peerDependencies": {
+    "@remix-run/mime": "workspace:^"
   },
   "devDependencies": {
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.3"
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsgo -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
     "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [
     "file",

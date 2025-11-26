@@ -1,10 +1,11 @@
 import SuperHeaders from '@remix-run/headers'
+import { isCompressibleMimeType } from '@remix-run/mime'
 
 /**
  * Custom function for computing file digests.
  *
  * @param file The file to hash
- * @returns The computed digest as a string
+ * @return The computed digest as a string
  *
  * @example
  * async (file) => {
@@ -14,6 +15,9 @@ import SuperHeaders from '@remix-run/headers'
  */
 export type FileDigestFunction = (file: File) => Promise<string>
 
+/**
+ * Options for creating a file response.
+ */
 export interface FileResponseOptions {
   /**
    * Cache-Control header value. If not provided, no Cache-Control header will be set.
@@ -59,7 +63,13 @@ export interface FileResponseOptions {
    * When enabled, includes `Accept-Ranges` header and handles `Range` requests
    * with 206 Partial Content responses.
    *
-   * @default true
+   * Defaults to enabling ranges only for non-compressible MIME types,
+   * as defined by `isCompressibleMimeType()` from `@remix-run/mime`.
+   *
+   * Note: Range requests and compression are mutually exclusive. When
+   * `Accept-Ranges: bytes` is present in the response headers, the compression
+   * middleware will not compress the response. This is why the default behavior
+   * enables ranges only for non-compressible types.
    */
   acceptRanges?: boolean
 }
@@ -70,8 +80,8 @@ export interface FileResponseOptions {
  *
  * @param file The file to send
  * @param request The request object
- * @param options (optional) configuration options
- * @returns A `Response` object containing the file
+ * @param options Configuration options
+ * @return A `Response` object containing the file
  *
  * @example
  * import { createFileResponse } from '@remix-run/response/file'
@@ -90,7 +100,7 @@ export async function createFileResponse(
     etag: etagStrategy = 'weak',
     digest: digestOption = 'SHA-256',
     lastModified: lastModifiedEnabled = true,
-    acceptRanges: acceptRangesEnabled = true,
+    acceptRanges: acceptRangesOption,
   } = options
 
   let headers = new SuperHeaders(request.headers)
@@ -110,6 +120,11 @@ export async function createFileResponse(
   if (lastModifiedEnabled) {
     lastModified = file.lastModified
   }
+
+  // Determine if we should accept ranges
+  // Default: enable ranges only for non-compressible MIME types
+  let acceptRangesEnabled =
+    acceptRangesOption !== undefined ? acceptRangesOption : !isCompressibleMimeType(contentType)
 
   let acceptRanges: 'bytes' | undefined
   if (acceptRangesEnabled) {

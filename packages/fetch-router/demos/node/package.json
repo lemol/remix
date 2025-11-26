@@ -14,11 +14,13 @@
     "@remix-run/session-middleware": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^24.6.0"
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "scripts": {
     "dev": "node --watch server.ts",
     "start": "node server.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   }
 }

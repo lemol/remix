@@ -1,6 +1,6 @@
 {
   "name": "@remix-run/file-storage",
-  "version": "0.11.0",
+  "version": "0.13.0",
   "description": "Key/value storage for JavaScript File objects",
   "author": "Michael Jackson <mjijackson@gmail.com>",
   "repository": {
@@ -46,16 +46,17 @@
     "@remix-run/lazy-file": "workspace:^"
   },
   "devDependencies": {
-    "@remix-run/form-data-parser": "workspace:^",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.3"
+    "@remix-run/form-data-parser": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsgo -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
     "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [
     "file",

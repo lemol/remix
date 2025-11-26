@@ -460,6 +460,19 @@ type Routes = typeof routes.users
 // }
 ```
 
+You can use the `exclude` option to exclude routes from being generated.
+
+```tsx
+let routes = resources('users', { exclude: ['edit', 'update', 'destroy'] })
+type Routes = typeof routes
+// {
+//   index: Route<'GET', '/users'> - Lists all users
+//   new: Route<'GET', '/users/new'> - Shows a form to create a new user
+//   show: Route<'GET', '/users/:userId'> - Shows a single user
+//   create: Route<'POST', '/users'> - Creates a new user
+// }
+```
+
 ### Middleware and Route Handlers
 
 A middleware is a function used to run code before and/or after route handlers run. It is a powerful way to add functionality to your app.
@@ -609,10 +622,12 @@ Response helpers for creating common HTTP responses are available in the [`@remi
 import { createFileResponse } from '@remix-run/response/file'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { createRedirectResponse } from '@remix-run/response/redirect'
+import { compressResponse } from '@remix-run/response/compress'
 
 let response = createHtmlResponse('<h1>Hello</h1>')
 let response = Response.json({ message: 'Hello' })
 let response = createRedirectResponse('/')
+let response = compressResponse(uncompressedResponse, request)
 ```
 
 See the [`@remix-run/response` documentation](https://github.com/remix-run/remix/tree/main/packages/response#readme) for more details.

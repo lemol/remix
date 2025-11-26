@@ -1,19 +1,28 @@
 import * as fs from 'node:fs'
-import { lookup } from 'mrmime'
+import { detectMimeType } from '@remix-run/mime'
 
 import { type LazyContent, LazyFile } from '@remix-run/lazy-file'
 
+/**
+ * Options for opening a file from the local filesystem.
+ */
 export interface OpenFileOptions {
   /**
-   * Overrides the name of the file. Default is the filename argument as provided.
+   * Overrides the name of the file.
+   *
+   * @default the filename argument as provided
    */
   name?: string
   /**
-   * Overrides the MIME type of the file. Default is determined by the file extension.
+   * Overrides the MIME type of the file.
+   *
+   * @default determined by the file extension
    */
   type?: string
   /**
-   * Overrides the last modified timestamp of the file. Default is the file's last modified time.
+   * Overrides the last modified timestamp of the file.
+   *
+   * @default the file's last modified time
    */
   lastModified?: number
 }
@@ -28,7 +37,7 @@ export interface OpenFileOptions {
  *
  * @param filename The path to the file
  * @param options Options to override the file's metadata
- * @returns A `File` object
+ * @return A `File` object
  */
 export function openFile(filename: string, options?: OpenFileOptions): File {
   let stats = fs.statSync(filename)
@@ -45,7 +54,7 @@ export function openFile(filename: string, options?: OpenFileOptions): File {
   }
 
   return new LazyFile(content, options?.name ?? filename, {
-    type: options?.type ?? lookup(filename),
+    type: options?.type ?? detectMimeType(filename) ?? '',
     lastModified: options?.lastModified ?? stats.mtimeMs,
   }) as File
 }
@@ -80,7 +89,7 @@ export { type OpenFileOptions as GetFileOptions, openFile as getFile }
  *
  * @param to The path to write the file to, or an open file descriptor
  * @param file The file to write
- * @returns A promise that resolves when the file is written
+ * @return A promise that resolves when the file is written
  */
 export function writeFile(to: string | number | fs.promises.FileHandle, file: File): Promise<void> {
   return new Promise(async (resolve, reject) => {

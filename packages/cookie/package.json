@@ -1,6 +1,6 @@
 {
   "name": "@remix-run/cookie",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A toolkit for working with cookies in JavaScript",
   "author": "Michael Jackson <mjijackson@gmail.com>",
   "license": "MIT",
@@ -32,17 +32,19 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^24.6.0"
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "@remix-run/headers": "workspace:^"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsgo -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
     "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [
     "http",

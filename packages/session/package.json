@@ -1,6 +1,6 @@
 {
   "name": "@remix-run/session",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Session management for JavaScript",
   "author": "Michael Jackson <mjijackson@gmail.com>",
   "license": "MIT",
@@ -47,15 +47,16 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.3"
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsgo -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
     "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [
     "session",
