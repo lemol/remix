@@ -1,5 +1,4 @@
 import type { Middleware as MiddlewareBase, NextFunction, RequestContext, RequestMethod } from '@remix-run/fetch-router'
-import type { ExtractExtra } from './define-router'
 
 export interface Middleware<
   extra = unknown,
@@ -13,12 +12,26 @@ export interface Middleware<
     ): Response | undefined | void | Promise<Response | undefined | void>
 }
 
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+  ? I
+  : never
+
+type ExtractExtras<T> = T extends Middleware<infer E>
+  ? E
+  : T extends Middleware<infer E>[]
+    ? E
+    : never
+
+export type ExtractExtra<M extends Middleware | Middleware[]> = UnionToIntersection<
+  ExtractExtras<M>
+>
+
 class ParentMiddleware<middlewares extends Middleware[]> {
   constructor(_parent: middlewares) {}
 }
 
 type ExtractExtraFromParentMiddleware<Parent extends ParentMiddleware<any>> =
-  Parent extends ParentMiddleware<infer middlewares> ? ExtractExtra<middlewares> : never
+  Parent extends ParentMiddleware<infer middlewares> ? ExtractExtra<middlewares[number]> : never
 
 /**
  * Use middleware that inherits extra data from parent middleware.
@@ -36,13 +49,40 @@ type ExtractExtraFromParentMiddleware<Parent extends ParentMiddleware<any>> =
  * // postsActionMiddleware now has both auth and formData in extra
  * ```
  */
-export function use<M extends Middleware[], Parent extends ParentMiddleware<any>>(
-  parent: Parent,
-  middleware: M,
-): Middleware<ExtractExtraFromParentMiddleware<Parent> & ExtractExtra<M>>[]
+type FlattenMiddleware<T> = T extends Middleware
+  ? T
+  : T extends Middleware[]
+    ? T[number]
+    : never
+
+export function use<M extends Middleware>(middleware: M): M[]
 export function use<M extends Middleware[]>(middleware: M): M
-export function use(parentOrMiddleware: any, middleware?: any) {
-  return middleware ?? parentOrMiddleware
+export function use<M1 extends Middleware, M2 extends Middleware>(
+  middleware1: M1,
+  middleware2: M2,
+): Middleware<ExtractExtra<M1> & ExtractExtra<M2>>[]
+export function use<
+  Parent extends ParentMiddleware<any>,
+  M extends (Middleware | Middleware[])[],
+>(
+  parent: Parent,
+  ...middleware: M
+): Middleware<
+  ExtractExtraFromParentMiddleware<Parent> & ExtractExtra<FlattenMiddleware<M[number]>>
+>[]
+export function use<M extends (Middleware | Middleware[])[]>(
+  ...middleware: M
+): Middleware<ExtractExtra<FlattenMiddleware<M[number]>>>[]
+export function use(parentOrMiddleware: any, ...middleware: any[]) {
+  // If only a single array is passed, return it as-is (backward compatibility)
+  if (middleware.length === 0 && Array.isArray(parentOrMiddleware)) {
+    return parentOrMiddleware
+  }
+  return (
+    parentOrMiddleware instanceof ParentMiddleware
+      ? middleware
+      : [parentOrMiddleware, ...middleware]
+  ).flat()
 }
 
 /**

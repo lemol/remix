@@ -7,15 +7,7 @@ import type {
 } from '@remix-run/fetch-router'
 import type { RouteMap } from '@remix-run/fetch-router'
 import type { Params, RoutePattern } from '@remix-run/route-pattern'
-import type { Middleware } from './middleware.ts'
-
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
-  ? I
-  : never
-
-export type ExtractExtra<M extends Middleware[]> = UnionToIntersection<
-  NonNullable<M[number]['__extra']>
->
+import type { ExtractExtra, Middleware } from './middleware.ts'
 
 // prettier-ignore
 type RouteHandlersExtra<routes extends RouteMap, extra = unknown> =
@@ -82,16 +74,16 @@ type GetMethod<R> = R extends Route<infer M, infer _> ? M : 'ANY'
  * ```
  */
 export function defineRouter<
-  M extends Middleware[],
+  M extends Middleware,
   method extends RequestMethod | 'ANY' = RequestMethod | 'ANY',
   pattern extends string = string,
 >(options: {
-  middleware: M
+  middleware: M[]
   handler: (
     context: RequestContext<method, Params<pattern>> & { extra: ExtractExtra<M> },
   ) => Response | Promise<Response>
 }): {
-  middleware: M
+  middleware: M[]
   handler: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>
 }
 /**
@@ -110,10 +102,10 @@ export function defineRouter<
  * })
  * ```
  */
-export function defineRouter<M extends Middleware[], routes extends RouteMap>(
+export function defineRouter<M extends Middleware, routes extends RouteMap>(
   routes: routes,
   options: {
-    middleware: M
+    middleware: M[] 
     handlers: RouteHandlersExtra<routes, ExtractExtra<M>>
   },
 ): RouteHandlers<routes>
@@ -131,10 +123,10 @@ export function defineRouter<M extends Middleware[], routes extends RouteMap>(
  * })
  * ```
  */
-export function defineRouter<M extends Middleware[], route extends string | RoutePattern | Route>(
+export function defineRouter<M extends Middleware, route extends string | RoutePattern | Route>(
   route: route,
   options: {
-    middleware: M
+    middleware: M[]
     handler: (
       context: RequestContext<GetMethod<route>, GetParams<route>> & {
         extra: ExtractExtra<M>

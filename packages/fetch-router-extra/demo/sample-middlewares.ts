@@ -33,3 +33,10 @@ export function loadUserInfo(): Middleware<{
     }
   }
 }
+
+export function sampleMiddleware(): Middleware<{ sample: string }> {
+  return (context: RequestContext) => {
+    ;(context as any).extra ??= {} as any
+    ;(context as any).extra.sample = 'sample'
+  }
+}

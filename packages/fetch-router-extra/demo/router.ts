@@ -4,7 +4,7 @@ import { createRouter } from '@remix-run/fetch-router'
 import { formData } from '@remix-run/form-data-middleware'
 import { defineRouter, use, withParent } from '@remix-run/fetch-router-extra'
 import { createHtmlResponse } from '@remix-run/response/html'
-import { formDataParser, loadUserInfo } from './sample-middlewares.ts'
+import { formDataParser, loadUserInfo, sampleMiddleware } from './sample-middlewares.ts'
 
 import { routes } from './routes.ts'
 
@@ -53,10 +53,7 @@ router.map(routes.home, {
   }),
 })
 
-let postsMiddleware = [loadUserInfo()]
-let postsActionMiddleware = use(withParent<typeof postsMiddleware>(), [
-  formDataParser(parser),
-])
+let postsMiddleware = use(loadUserInfo())
 
 let postsRouter = defineRouter(routes.posts, {
   middleware: postsMiddleware,
@@ -80,9 +77,14 @@ let postsRouter = defineRouter(routes.posts, {
       `)
     },
     action: defineRouter({
-      middleware: postsActionMiddleware,
+      middleware: use(
+        withParent<typeof postsMiddleware>(),
+        sampleMiddleware(),
+        formDataParser(parser),
+      ),
       handler: ({ extra }) => {
         console.log(extra.user)
+        console.log(extra.sample)
         return createHtmlResponse(html`
           <html>
             <body>
