@@ -881,6 +881,99 @@ importers:
         specifier: ^8.2.0
         version: 8.3.0
 
+  packages/router-services-middleware:
+    dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
+    devDependencies:
+      '@remix-run/async-context-middleware':
+        specifier: workspace:*
+        version: link:../async-context-middleware
+      '@remix-run/fetch-router':
+        specifier: workspace:*
+        version: link:../fetch-router
+      '@remix-run/fetch-router-extra':
+        specifier: workspace:*
+        version: link:../fetch-router-extra
+      '@types/node':
+        specifier: ^24.6.0
+        version: 24.6.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
+
+  packages/router-services-middleware/demos/basic:
+    dependencies:
+      '@remix-run/async-context-middleware':
+        specifier: workspace:*
+        version: link:../../../async-context-middleware
+      '@remix-run/fetch-router':
+        specifier: workspace:*
+        version: link:../../../fetch-router
+      '@remix-run/fetch-router-extra':
+        specifier: workspace:*
+        version: link:../../../fetch-router-extra
+      '@remix-run/form-data-middleware':
+        specifier: workspace:*
+        version: link:../../../form-data-middleware
+      '@remix-run/form-data-typed-middleware':
+        specifier: workspace:*
+        version: link:../../../form-data-typed-middleware
+      '@remix-run/html-template':
+        specifier: workspace:*
+        version: link:../../../html-template
+      '@remix-run/node-fetch-server':
+        specifier: workspace:*
+        version: link:../../../node-fetch-server
+      '@remix-run/response':
+        specifier: workspace:*
+        version: link:../../../response
+      '@remix-run/router-services-middleware':
+        specifier: workspace:*
+        version: link:../..
+    devDependencies:
+      '@types/node':
+        specifier: ^24.6.0
+        version: 24.6.0
+
+  packages/router-services-middleware/demos/complete:
+    dependencies:
+      '@remix-run/async-context-middleware':
+        specifier: workspace:*
+        version: link:../../../async-context-middleware
+      '@remix-run/fetch-router':
+        specifier: workspace:*
+        version: link:../../../fetch-router
+      '@remix-run/fetch-router-extra':
+        specifier: workspace:*
+        version: link:../../../fetch-router-extra
+      '@remix-run/form-data-middleware':
+        specifier: workspace:*
+        version: link:../../../form-data-middleware
+      '@remix-run/form-data-typed-middleware':
+        specifier: workspace:*
+        version: link:../../../form-data-typed-middleware
+      '@remix-run/html-template':
+        specifier: workspace:*
+        version: link:../../../html-template
+      '@remix-run/node-fetch-server':
+        specifier: workspace:*
+        version: link:../../../node-fetch-server
+      '@remix-run/response':
+        specifier: workspace:*
+        version: link:../../../response
+      '@remix-run/router-services-middleware':
+        specifier: workspace:*
+        version: link:../..
+    devDependencies:
+      '@types/node':
+        specifier: ^24.6.0
+        version: 24.6.0
+
   packages/session:
     devDependencies:
       '@types/node':

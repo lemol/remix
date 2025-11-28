@@ -1,0 +1,24 @@
+{
+  "name": "router-services-middleware-demo-complete",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@remix-run/async-context-middleware": "workspace:*",
+    "@remix-run/fetch-router": "workspace:*",
+    "@remix-run/fetch-router-extra": "workspace:*",
+    "@remix-run/form-data-middleware": "workspace:*",
+    "@remix-run/form-data-typed-middleware": "workspace:*",
+    "@remix-run/html-template": "workspace:*",
+    "@remix-run/node-fetch-server": "workspace:*",
+    "@remix-run/response": "workspace:*",
+    "@remix-run/router-services-middleware": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.ts",
+    "start": "node server.ts",
+    "typecheck": "tsc --noEmit"
+  }
+}

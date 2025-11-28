@@ -19,6 +19,7 @@ packages:
   - packages/static-middleware/demos/*
   - packages/tar-parser/bench
   - packages/fetch-router-extra/demo
+  - packages/router-services-middleware/demos/*
   - scripts
 
 shellEmulator: true
