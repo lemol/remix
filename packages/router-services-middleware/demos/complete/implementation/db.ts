@@ -1,4 +1,5 @@
-import type { User } from "../user/user.model";
+import type { Post } from '../post/post.model.ts'
+import type { User } from '../user/user.model.ts'
 
 export const users: User[] = [
   { id: 1, name: 'Sarah Chen', postCount: 3 },

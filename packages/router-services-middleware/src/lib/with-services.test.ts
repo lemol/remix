@@ -4,9 +4,9 @@ import { describe, it } from 'node:test'
 import { createRouter, route } from '@remix-run/fetch-router'
 import { asyncContext } from '@remix-run/async-context-middleware'
 
-import { ServiceProvider, serviceOf } from './service-provider.ts'
+import { ServiceProvider, serviceOf, defineCatalog } from './service-provider.ts'
 import { withServiceProvider, getServiceProvider } from './with-service-provider.ts'
-import { withServices } from './with-services.ts'
+import { withServices, resolveService } from './with-services.ts'
 
 describe('withServiceProvider', () => {
   it('stores the service provider in context', async () => {
@@ -225,5 +225,134 @@ describe('withServices', () => {
 
     // Each request should get a new service instance
     assert.deepEqual(capturedIds, [1, 2, 3])
+  })
+
+  it('works with catalog entries', async () => {
+    let catalog = defineCatalog({
+      postService: serviceOf<{ listPosts: () => string[] }>(),
+      userService: serviceOf<{ getUser: () => string }>(),
+    })
+
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.postService, () => ({
+      listPosts: () => ['Post 1', 'Post 2'],
+    }))
+    serviceProvider.provide(catalog.userService, () => ({
+      getUser: () => 'John',
+    }))
+
+    let router = createRouter({
+      middleware: [asyncContext(), withServiceProvider(serviceProvider)],
+    })
+
+    let capturedServices: any = null
+
+    router.get('/test', {
+      middleware: [withServices(catalog.postService, catalog.userService)],
+      handler(context: any) {
+        capturedServices = context.extra.services
+        return new Response('OK')
+      },
+    })
+
+    await router.fetch('https://remix.run/test')
+
+    assert.ok(capturedServices)
+    assert.deepEqual(capturedServices.postService.listPosts(), ['Post 1', 'Post 2'])
+    assert.equal(capturedServices.userService.getUser(), 'John')
+  })
+})
+
+describe('resolveService', () => {
+  it('resolves a catalog entry service', async () => {
+    let catalog = defineCatalog({
+      myService: serviceOf<{ getValue: () => string }>(),
+    })
+
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.myService, () => ({
+      getValue: () => 'Hello from service',
+    }))
+
+    let router = createRouter({
+      middleware: [asyncContext(), withServiceProvider(serviceProvider)],
+    })
+
+    let resolvedValue: string | null = null
+
+    router.get('/test', {
+      handler() {
+        let service = resolveService(catalog.myService)
+        resolvedValue = service.getValue()
+        return new Response('OK')
+      },
+    })
+
+    await router.fetch('https://remix.run/test')
+
+    assert.equal(resolvedValue, 'Hello from service')
+  })
+
+  it('resolves a route-based service', async () => {
+    let routes = route({
+      posts: '/posts',
+    })
+
+    let serviceProvider = new ServiceProvider()
+    serviceProvider.provide(routes.posts, 'myService', () => ({
+      getData: () => 'Route-based data',
+    }))
+
+    let router = createRouter({
+      middleware: [asyncContext(), withServiceProvider(serviceProvider)],
+    })
+
+    let resolvedValue: string | null = null
+
+    router.get(routes.posts, {
+      handler() {
+        let service = resolveService<{ getData: () => string }>(routes.posts, 'myService')
+        resolvedValue = service.getData()
+        return new Response('OK')
+      },
+    })
+
+    await router.fetch('https://remix.run/posts')
+
+    assert.equal(resolvedValue, 'Route-based data')
+  })
+
+  it('returns the same instance for multiple calls', async () => {
+    let catalog = defineCatalog({
+      counter: serviceOf<{ id: number }>(),
+    })
+
+    let instanceCount = 0
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.counter, () => {
+      instanceCount++
+      return { id: instanceCount }
+    })
+
+    let router = createRouter({
+      middleware: [asyncContext(), withServiceProvider(serviceProvider)],
+    })
+
+    let ids: number[] = []
+
+    router.get('/test', {
+      handler() {
+        ids.push(resolveService(catalog.counter).id)
+        ids.push(resolveService(catalog.counter).id)
+        ids.push(resolveService(catalog.counter).id)
+        return new Response('OK')
+      },
+    })
+
+    await router.fetch('https://remix.run/test')
+
+    // All three calls should return the same instance
+    assert.deepEqual(ids, [1, 1, 1])
+    assert.equal(instanceCount, 1)
   })
 })

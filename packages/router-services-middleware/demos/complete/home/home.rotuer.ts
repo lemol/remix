@@ -2,9 +2,9 @@ import { defineRouter } from '@remix-run/fetch-router-extra'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { html } from '@remix-run/html-template'
 
-import { routes } from '../routes'
+import { routes } from '../routes.ts'
 
-export let homeRouter = defineRouter(routes.home, {
+export let homeHandler = defineRouter(routes.home, {
   middleware: [],
   handler: () => {
     return createHtmlResponse(html`
@@ -14,7 +14,7 @@ export let homeRouter = defineRouter(routes.home, {
           <p>Welcome to the home page</p>
           <div>
             <a href="${routes.posts.index.href()}">Posts</a>
-            <a href="${routes.users.href()}">Users</a>
+            <a href="${routes.users.index.href()}">Users</a>
           </div>
         </body>
       </html>

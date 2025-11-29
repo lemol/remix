@@ -3,7 +3,7 @@ import { describe, it } from 'node:test'
 
 import { route } from '@remix-run/fetch-router'
 
-import { ServiceProvider } from './service-provider.ts'
+import { ServiceProvider, defineCatalog, serviceOf } from './service-provider.ts'
 
 describe('ServiceProvider', () => {
   it('provides and retrieves a service factory', () => {
@@ -72,5 +72,30 @@ describe('ServiceProvider', () => {
     provider.provide(routes.posts, 'myService', () => 'second')
 
     assert.equal(provider.getFactory(routes.posts, 'myService')?.(), 'second')
+  })
+})
+
+describe('defineCatalog', () => {
+  it('creates catalog entries with names', () => {
+    let catalog = defineCatalog({
+      postService: serviceOf<{ list: () => string[] }>(),
+      userService: serviceOf<{ get: () => string }>(),
+    })
+
+    assert.equal(catalog.postService.__name, 'postService')
+    assert.equal(catalog.userService.__name, 'userService')
+  })
+
+  it('works with ServiceProvider.provide()', () => {
+    let catalog = defineCatalog({
+      myService: serviceOf<string>(),
+    })
+
+    let provider = new ServiceProvider(catalog)
+    provider.provide(catalog.myService, () => 'hello')
+
+    // The factory is stored under the catalog entry name
+    let factory = provider.getFactory({ method: 'ANY', pattern: { source: '' } } as any, 'myService')
+    assert.equal(factory?.(), 'hello')
   })
 })

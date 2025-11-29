@@ -1,4 +1,4 @@
-# @remix-run/router-services-middleware
+# router-services-middleware
 
 Type-safe dependency injection middleware for `@remix-run/fetch-router`.
 
@@ -201,6 +201,27 @@ Creates a service definition with the specified type. Used to declare services i
 ```ts
 serviceOf<(args: { title: string }) => void>()
 serviceOf<UserRepository>()
+```
+
+### `resolveService(catalogEntry)`
+
+Resolves a service instance from a catalog entry. Useful when you need to access a service outside of `withServices` (e.g., in a utility function or another middleware).
+
+- `catalogEntry`: A service definition from the catalog.
+
+```ts
+let postRepository = resolveService(ServiceCatalog.postRepository)
+```
+
+### `resolveService(route, serviceName)`
+
+Resolves a service instance from a route and service name.
+
+- `route`: The route the service is registered for.
+- `serviceName`: The name of the service.
+
+```ts
+let createPost = resolveService(routes.posts, 'createPost')
 ```
 
 ## Related Packages

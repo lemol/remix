@@ -1,21 +1,20 @@
-import { defineRouter } from '@remix-run/fetch-router-extra'
+import { defineRouter, use } from '@remix-run/fetch-router-extra'
 import { withServices } from '@remix-run/router-services-middleware'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { html } from '@remix-run/html-template'
 
-import { ServiceCatalog } from '../services'
-import { routes } from '../routes'
+import { ServiceCatalog } from '../services.ts'
+import { routes } from '../routes.ts'
 
-export let usersRouter = defineRouter(routes.users, {
-  middleware: [
-    withServices(ServiceCatalog.userRepository),
-  ],
-  handler: ({ extra }) => {
-    let users = extra.services.userRepository.listUsers()
+export let usersIndexHandler = defineRouter(routes.users.index, {
+  middleware: use(withServices(ServiceCatalog.userRepository)),
+  handler: async ({ extra }) => {
+    let users = await extra.services.userRepository.listUsers()
     return createHtmlResponse(html`
       <html>
         <body>
           <h1>Users</h1>
+          <div><a href="${routes.home.href()}">Home</a></div>
           <table>
             <thead>
               <tr>
@@ -25,13 +24,15 @@ export let usersRouter = defineRouter(routes.users, {
               </tr>
             </thead>
             <tbody>
-              ${users.map(user => html`
-                <tr>
-                  <td>${user.id}</td>
-                  <td>${user.name}</td>
-                  <td>${user.postCount}</td>
-                </tr>
-              `)}
+              ${users.map(
+                (user) => html`
+                  <tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.postCount}</td>
+                  </tr>
+                `,
+              )}
             </tbody>
           </table>
         </body>

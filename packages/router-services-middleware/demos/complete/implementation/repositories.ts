@@ -1,6 +1,6 @@
-import { users, posts } from "./db";
-import type { UserRepository } from "../user/user.model";
-import type { Post, PostRepository } from "../post/post.model";
+import { users, posts } from "./db.ts";
+import type { UserRepository } from "../user/user.model.ts";
+import type { Post, PostRepository } from "../post/post.model.ts";
 
 export class MemoryUserRepository implements UserRepository {
   listUsers() {
@@ -19,6 +19,10 @@ export class MemoryUserRepository implements UserRepository {
 export class MemoryPostRepository implements PostRepository {
   listPosts() {
     return Promise.resolve(posts)
+  }
+
+  getPost(id: number) {
+    return Promise.resolve(posts.find((post) => post.id === id))
   }
 
   createPost(post: Omit<Post, "id">) {

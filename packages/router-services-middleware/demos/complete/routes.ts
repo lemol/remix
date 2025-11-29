@@ -5,6 +5,9 @@ export let routes = route({
   posts: {
     index: '/posts',
     create: formAction('/posts/create'),
+    detail: '/posts/:postId',
   },
-  users: '/users',
+  users: {
+    index: '/users',
+  },
 })
