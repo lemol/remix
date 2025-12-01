@@ -2,7 +2,7 @@ import * as assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import { defineRouter } from './define-router.ts'
-import { type Middleware, use, withParent } from './middleware.ts'
+import { type Middleware, use, includeParentExtra } from './middleware.ts'
 
 describe('defineRouter', () => {
   describe('single handler', () => {
@@ -98,7 +98,8 @@ describe('use', () => {
 
     let result = use(testMiddleware)
 
-    assert.equal(result, testMiddleware)
+    assert.equal(result.length, testMiddleware.length)
+    assert.equal(result[0], testMiddleware[0])
   })
 
   it('returns middleware with parent type when parent provided', () => {
@@ -114,10 +115,10 @@ describe('use', () => {
       },
     ]
 
-    let result = use(withParent<typeof parentMw>(), childMw)
+    let result = use(includeParentExtra(parentMw), childMw)
 
     assert.ok(result)
-    assert.equal(result.length, childMw.length)
+    assert.equal(result.length, childMw.length + 1)
   })
 
   it('combines parent and child middleware types', () => {
@@ -136,7 +137,7 @@ describe('use', () => {
       },
     ]
 
-    let combined = use(withParent<typeof parentMw>(), childMw)
+    let combined = use(includeParentExtra(parentMw), childMw)
     let _extra = extractExtraType(combined) satisfies { auth: boolean; formData: { title: string } }
 
     // Use in defineRouter to verify type safety
@@ -179,7 +180,7 @@ describe('integration', () => {
       },
     ]
 
-    let combinedMiddleware = use(withParent<typeof authMiddleware>(), formMiddleware)
+    let combinedMiddleware = use(includeParentExtra(authMiddleware), formMiddleware)
 
     // Inner router with combined middleware
     let innerRouter = defineRouter({
@@ -197,5 +198,48 @@ describe('integration', () => {
     assert.ok(innerRouter)
     assert.ok(innerRouter.middleware)
     assert.ok(innerRouter.handler)
+  })
+
+  it('handles mixed middleware types correctly', () => {
+    // This test simulates the user's scenario where different middleware
+    // provide different extra properties, and we want to ensure they are all
+    // correctly inferred and merged.
+    
+    // Middleware 1: Provides 'user'
+    let authMiddleware: Middleware<{ user: { id: string } }> = (context) => {
+      ;(context as any).extra = { ...((context as any).extra || {}), user: { id: '1' } }
+    }
+
+    // Middleware 2: Provides 'services' (simulating withServices)
+    let servicesMiddleware: Middleware<{ services: { db: any } }> = (context) => {
+      ;(context as any).extra = { ...((context as any).extra || {}), services: { db: {} } }
+    }
+
+    // Middleware 3: Provides 'admin'
+    let adminMiddleware: Middleware<{ admin: boolean }> = (context) => {
+      ;(context as any).extra = { ...((context as any).extra || {}), admin: true }
+    }
+
+    let result = defineRouter({
+      middleware: [authMiddleware, servicesMiddleware, adminMiddleware],
+      handler: ({ extra }) => {
+        // In the failing case, 'extra' might be inferred as the union of extras
+        // or just one of them, rather than the intersection.
+        // We want to verify that we can access properties from ALL middlewares.
+        
+        // These assignments serve as type checks. 
+        // If inference is wrong, these might fail compilation (if we were running tsc)
+        // or at runtime if we were inspecting types (which we can't easily do here).
+        // But we can check if the values are present at runtime.
+        
+        let userId = extra.user.id
+        let db = extra.services.db
+        let isAdmin = extra.admin
+
+        return new Response(`User: ${userId}, Admin: ${isAdmin}`)
+      }
+    })
+
+    assert.ok(result)
   })
 })

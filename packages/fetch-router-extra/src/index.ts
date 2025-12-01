@@ -1,2 +1,2 @@
-export { type Middleware, use, withParent } from './middleware.ts'
+export { type Middleware, type ExtractExtra, use, includeParentExtra } from './middleware.ts'
 export { defineRouter } from './define-router.ts'

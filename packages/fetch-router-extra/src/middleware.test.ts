@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { type Middleware, use, withParent, type ExtractExtra } from './middleware.ts'
+import { type Middleware, use, includeParentExtra, type ExtractExtra } from './middleware.ts'
 
 describe('use (variadic)', () => {
   it('accepts single middleware', () => {
@@ -46,10 +46,10 @@ describe('use (variadic)', () => {
     let parentMw: Middleware<{ p: 'parent' }>[] = []
     let mw1: Middleware<{ a: 1 }> = (ctx, next) => next()
 
-    let result = use(withParent<typeof parentMw>(), mw1)
+    let result = use(includeParentExtra(parentMw), mw1)
 
-    assert.equal(result.length, 1)
-    assert.equal(result[0], mw1)
+    assert.equal(result.length, 2)
+    assert.equal(result[1], mw1)
 
     // Type check
     type Expected = { p: 'parent' } & { a: 1 }
@@ -88,9 +88,9 @@ describe('use (variadic)', () => {
     let parentMw: Middleware<{ p: 'parent' }>[] = []
     let mw1: Middleware<{ a: 1 }> = (ctx, next) => next()
 
-    let result = use(withParent<typeof parentMw>(), [mw1])
+    let result = use(includeParentExtra(parentMw), [mw1])
 
-    assert.equal(result.length, 1)
-    assert.equal(result[0], mw1)
+    assert.equal(result.length, 2)
+    assert.equal(result[1], mw1)
   })
 })
