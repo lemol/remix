@@ -1,5 +1,5 @@
 import z from 'zod'
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
 import { createHtmlResponse } from '@remix-run/response/html'
@@ -9,9 +9,9 @@ import { ServiceCatalog } from '../services.ts'
 import { routes } from '../routes.ts'
 import { createRedirectResponse } from '@remix-run/response/redirect'
 
-export let postsIndexHandler = defineRouter(routes.posts.index, {
+export let postsIndexHandler = defineAction(routes.posts.index, {
   middleware: use(withServices(ServiceCatalog.postRepository)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let posts = await extra.services.postRepository.listPosts()
     let getCurrentUsername = resolveService(ServiceCatalog.getCurrentUsername)
 
@@ -33,9 +33,9 @@ export let postsIndexHandler = defineRouter(routes.posts.index, {
   },
 })
 
-export let postsCreateIndexHandler = defineRouter(routes.posts.create.index, {
+export let postsCreateIndexHandler = defineAction(routes.posts.create.index, {
   middleware: use(withServices(ServiceCatalog.userRepository)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let users = await extra.services.userRepository.listUsers()
     return createHtmlResponse(html`
       <html>
@@ -55,9 +55,9 @@ export let postsCreateIndexHandler = defineRouter(routes.posts.create.index, {
   },
 })
 
-export let postsDetailHandler = defineRouter(routes.posts.detail, {
+export let postsDetailHandler = defineAction(routes.posts.detail, {
   middleware: use(withServices(ServiceCatalog.postRepository)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let post = await extra.services.postRepository.getPost(Number(params.postId))
     if (!post) {
       return new Response('Post not found', { status: 404 })
@@ -76,7 +76,7 @@ export let postsDetailHandler = defineRouter(routes.posts.detail, {
   },
 })
 
-export let postsCreateActionHandler = defineRouter(routes.posts.create.action, {
+export let postsCreateActionHandler = defineAction(routes.posts.create.action, {
   middleware: use(
     withServices(
       ServiceCatalog.userRepository,
@@ -91,7 +91,7 @@ export let postsCreateActionHandler = defineRouter(routes.posts.create.action, {
       }),
     ),
   ),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let createdPost = await extra.services.postRepository.createPost(extra.formData)
     await extra.services.userRepository.updateUserPostCount(extra.formData.authorId)
     
@@ -106,7 +106,7 @@ export let postsCreateActionHandler = defineRouter(routes.posts.create.action, {
 
 export let postsRouter = {
   middleware: [withServices(ServiceCatalog.getCurrentUsername)],
-  handlers: {
+  actions: {
     index: postsIndexHandler,
     detail: postsDetailHandler,
     create: {

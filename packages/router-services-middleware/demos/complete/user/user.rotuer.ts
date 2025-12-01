@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { withServices } from '@remix-run/router-services-middleware'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { html } from '@remix-run/html-template'
@@ -6,9 +6,9 @@ import { html } from '@remix-run/html-template'
 import { ServiceCatalog } from '../services.ts'
 import { routes } from '../routes.ts'
 
-export let usersIndexHandler = defineRouter(routes.users.index, {
+export let usersIndexHandler = defineAction(routes.users.index, {
   middleware: use(withServices(ServiceCatalog.userRepository)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let users = await extra.services.userRepository.listUsers()
     return createHtmlResponse(html`
       <html>

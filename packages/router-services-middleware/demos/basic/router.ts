@@ -4,7 +4,7 @@ import { createRouter } from '@remix-run/fetch-router'
 import { asyncContext } from '@remix-run/async-context-middleware'
 import { formData } from '@remix-run/form-data-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createHtmlResponse } from '@remix-run/response/html'
 
 import {
@@ -51,9 +51,9 @@ router.map(routes.home, {
       </html>
     `)
   },
-  action: defineRouter({
+  action: defineAction({
     middleware: homeActionMiddleware,
-    handler: ({ extra }) => {
+    action: ({ extra }) => {
       extra.services.createPost({ title: extra.formData.title, content: extra.formData.content })
       return createHtmlResponse(html`
         <html>

@@ -1,12 +1,12 @@
-import { defineRouter } from '@remix-run/fetch-router-extra'
+import { defineAction } from '@remix-run/fetch-router-extra'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { html } from '@remix-run/html-template'
 
 import { routes } from '../routes.ts'
 
-export let homeHandler = defineRouter(routes.home, {
+export let homeHandler = defineAction(routes.home, {
   middleware: [],
-  handler: () => {
+  action: () => {
     return createHtmlResponse(html`
       <html>
         <body>
