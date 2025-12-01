@@ -56,8 +56,12 @@ describe('withServices', () => {
       posts: { method: 'POST', pattern: '/posts' },
     })
 
-    let serviceProvider = new ServiceProvider()
-    serviceProvider.provide(routes.posts, 'createPost', () => {
+    let catalog = defineCatalog({
+      createPost: serviceOf<(title: string) => string>(),
+    })
+
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.createPost, () => {
       return (title: string) => `Created: ${title}`
     })
 
@@ -69,9 +73,7 @@ describe('withServices', () => {
 
     router.post(routes.posts, {
       middleware: [
-        withServices(routes.posts, {
-          createPost: serviceOf<(title: string) => string>(),
-        }),
+        withServices(catalog.createPost),
       ],
       handler(context: any) {
         capturedServices = context.extra.services
@@ -91,9 +93,13 @@ describe('withServices', () => {
       posts: { method: 'POST', pattern: '/posts' },
     })
 
+    let catalog = defineCatalog({
+      myService: serviceOf<{ value: string }>(),
+    })
+
     let initCount = 0
-    let serviceProvider = new ServiceProvider()
-    serviceProvider.provide(routes.posts, 'myService', () => {
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.myService, () => {
       initCount++
       return { value: 'test' }
     })
@@ -104,9 +110,7 @@ describe('withServices', () => {
 
     router.post(routes.posts, {
       middleware: [
-        withServices(routes.posts, {
-          myService: serviceOf<{ value: string }>(),
-        }),
+        withServices(catalog.myService),
       ],
       handler(context: any) {
         // Service should not be initialized yet
@@ -134,7 +138,11 @@ describe('withServices', () => {
       posts: { method: 'POST', pattern: '/posts' },
     })
 
-    let serviceProvider = new ServiceProvider()
+    let catalog = defineCatalog({
+      missingService: serviceOf<string>(),
+    })
+
+    let serviceProvider = new ServiceProvider(catalog)
     // Note: not registering the service
 
     let router = createRouter({
@@ -143,9 +151,7 @@ describe('withServices', () => {
 
     router.post(routes.posts, {
       middleware: [
-        withServices(routes.posts, {
-          missingService: serviceOf<string>(),
-        }),
+        withServices(catalog.missingService),
       ],
       handler(context: any) {
         assert.throws(
@@ -164,9 +170,14 @@ describe('withServices', () => {
       posts: { method: 'POST', pattern: '/posts' },
     })
 
-    let serviceProvider = new ServiceProvider()
-    serviceProvider.provide(routes.posts, 'serviceA', () => 'A')
-    serviceProvider.provide(routes.posts, 'serviceB', () => 'B')
+    let catalog = defineCatalog({
+      serviceA: serviceOf<string>(),
+      serviceB: serviceOf<string>(),
+    })
+
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.serviceA, () => 'A')
+    serviceProvider.provide(catalog.serviceB, () => 'B')
 
     let router = createRouter({
       middleware: [asyncContext(), withServiceProvider(serviceProvider)],
@@ -174,10 +185,7 @@ describe('withServices', () => {
 
     router.post(routes.posts, {
       middleware: [
-        withServices(routes.posts, {
-          serviceA: serviceOf<string>(),
-          serviceB: serviceOf<string>(),
-        }),
+        withServices(catalog.serviceA, catalog.serviceB),
       ],
       handler(context: any) {
         assert.equal(context.extra.services.serviceA, 'A')
@@ -194,9 +202,13 @@ describe('withServices', () => {
       posts: { method: 'POST', pattern: '/posts' },
     })
 
+    let catalog = defineCatalog({
+      counter: serviceOf<{ id: number }>(),
+    })
+
     let requestCount = 0
-    let serviceProvider = new ServiceProvider()
-    serviceProvider.provide(routes.posts, 'counter', () => {
+    let serviceProvider = new ServiceProvider(catalog)
+    serviceProvider.provide(catalog.counter, () => {
       requestCount++
       return { id: requestCount }
     })
@@ -209,9 +221,7 @@ describe('withServices', () => {
 
     router.post(routes.posts, {
       middleware: [
-        withServices(routes.posts, {
-          counter: serviceOf<{ id: number }>(),
-        }),
+        withServices(catalog.counter),
       ],
       handler(context: any) {
         capturedIds.push(context.extra.services.counter.id)

@@ -10,6 +10,7 @@ import { createHtmlResponse } from '@remix-run/response/html'
 import {
   withServices,
   serviceOf,
+  defineCatalog,
   withServiceProvider,
   ServiceProvider,
 } from '@remix-run/router-services-middleware'
@@ -21,6 +22,10 @@ export let router = createRouter({
   middleware: [asyncContext(), formData(), withServiceProvider(serviceProvider)],
 })
 
+const services = defineCatalog({
+  createPost: serviceOf<(args: { title: string; content: string }) => void>(),
+})
+
 let homeActionMiddleware = use(
   withFormData(
     z.object({
@@ -28,9 +33,7 @@ let homeActionMiddleware = use(
       content: z.string(),
     })
   ),
-  withServices(routes.home.action, {
-    createPost: serviceOf<(args: { title: string; content: string }) => void>(),
-  })
+  withServices(services.createPost)
 )
 
 router.map(routes.home, {
@@ -68,7 +71,7 @@ router.map(routes.home, {
   }),
 })
 
-serviceProvider.provide(routes.home.action, 'createPost', () => {
+serviceProvider.provide(services.createPost, () => {
   return ({ title, content }: { title: string; content: string }) => {
     console.log(`Creating post: ${title} - ${content}`)
   }

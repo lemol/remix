@@ -141,41 +141,15 @@ function resolveServiceInternal<T>(
  * // extra.services.postRepository is now available
  * ```
  */
-export function withServices<T, Name extends string>(
-  entry: CatalogEntry<T> & { __name: Name },
-): Middleware<{ services: { [K in Name]: T } }>
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+  ? I
+  : never
 
-/**
- * Create a middleware that makes multiple catalog entry services available on the request context.
- */
-export function withServices<T1, N1 extends string, T2, N2 extends string>(
-  entry1: CatalogEntry<T1> & { __name: N1 },
-  entry2: CatalogEntry<T2> & { __name: N2 },
-): Middleware<{ services: { [K in N1]: T1 } & { [K in N2]: T2 } }>
-
-export function withServices<T1, N1 extends string, T2, N2 extends string, T3, N3 extends string>(
-  entry1: CatalogEntry<T1> & { __name: N1 },
-  entry2: CatalogEntry<T2> & { __name: N2 },
-  entry3: CatalogEntry<T3> & { __name: N3 },
-): Middleware<{ services: { [K in N1]: T1 } & { [K in N2]: T2 } & { [K in N3]: T3 } }>
-
-export function withServices<
-  T1,
-  N1 extends string,
-  T2,
-  N2 extends string,
-  T3,
-  N3 extends string,
-  T4,
-  N4 extends string,
->(
-  entry1: CatalogEntry<T1> & { __name: N1 },
-  entry2: CatalogEntry<T2> & { __name: N2 },
-  entry3: CatalogEntry<T3> & { __name: N3 },
-  entry4: CatalogEntry<T4> & { __name: N4 },
-): Middleware<
-  { services: { [K in N1]: T1 } & { [K in N2]: T2 } & { [K in N3]: T3 } & { [K in N4]: T4 } }
->
+type ExtractServiceMap<E> = E extends CatalogEntry<infer T> & { __name: infer N }
+  ? N extends string
+    ? { [K in N]: T }
+    : never
+  : never
 
 /**
  * Create a middleware that makes services available on the request context.
@@ -183,65 +157,22 @@ export function withServices<
  * Services are initialized lazily when first accessed, and the same instance
  * is returned for the duration of the request.
  *
- * @param route The route to fetch services for
- * @param catalog A record of service names to service definitions
- * @return A middleware that adds `extra.services` to the context
+ * @param entries Catalog entries from `defineCatalog()`
+ * @return A middleware that adds the services to `extra.services`
  *
  * @example
  * ```ts
- * const middleware = withServices(routes.posts, {
- *   createPost: serviceOf<(args: { title: string, content: string }) => void>()
- * })
+ * const middleware = withServices(
+ *   ServiceCatalog.postRepository,
+ *   ServiceCatalog.userRepository
+ * )
+ * // extra.services.postRepository and extra.services.userRepository are available
  * ```
  */
-export function withServices<C extends ServiceCatalog>(
-  route: Route<RequestMethod | 'ANY', string>,
-  catalog: C,
-): Middleware<{ services: ServiceTypes<C> }>
-
-export function withServices(
-  routeOrEntry: Route<RequestMethod | 'ANY', string> | CatalogEntry,
-  catalogOrEntry?: ServiceCatalog | CatalogEntry,
-  ...moreEntries: CatalogEntry[]
-): Middleware {
-  // Check if first argument is a catalog entry (not a route)
-  if (isCatalogEntry(routeOrEntry)) {
-    // Collect all catalog entries
-    let entries: CatalogEntry[] = [routeOrEntry]
-    if (catalogOrEntry && isCatalogEntry(catalogOrEntry)) {
-      entries.push(catalogOrEntry)
-    }
-    entries.push(...moreEntries)
-
-    return (context: RequestContext) => {
-      // Capture instances and provider at middleware execution time
-      let instances = getServiceInstances()
-      let provider = getServiceProvider()
-
-      // Merge with existing services if present
-      let existingServices = (context as any).extra?.services ?? {}
-      let services = { ...existingServices }
-
-      for (let entry of entries) {
-        Object.defineProperty(services, entry.__name, {
-          get() {
-            return resolveServiceInternal(entry, instances, provider)
-          },
-          enumerable: true,
-          configurable: true,
-        })
-      }
-
-      ;(context as any).extra ??= {}
-      ;(context as any).extra.services = services
-    }
-  }
-
-  // Route overload
-  let route = routeOrEntry as Route<RequestMethod | 'ANY', string>
-  let catalog = catalogOrEntry as ServiceCatalog
-  let serviceNames = Object.keys(catalog)
-
+export function withServices<Entries extends (CatalogEntry & { __name: string })[]>(
+  ...entries: Entries
+): Middleware<{ services: UnionToIntersection<ExtractServiceMap<Entries[number]>> }> {
+  // Collect all catalog entries
   return (context: RequestContext) => {
     // Capture instances and provider at middleware execution time
     let instances = getServiceInstances()
@@ -251,10 +182,10 @@ export function withServices(
     let existingServices = (context as any).extra?.services ?? {}
     let services = { ...existingServices }
 
-    for (let name of serviceNames) {
-      Object.defineProperty(services, name, {
+    for (let entry of entries) {
+      Object.defineProperty(services, entry.__name, {
         get() {
-          return resolveServiceInternal(route, instances, provider, name)
+          return resolveServiceInternal(entry, instances, provider)
         },
         enumerable: true,
         configurable: true,
