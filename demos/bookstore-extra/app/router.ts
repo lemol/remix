@@ -1,0 +1,65 @@
+import { createRouter } from '@remix-run/fetch-router'
+import { asyncContext } from '@remix-run/async-context-middleware'
+import { compression } from '@remix-run/compression-middleware'
+import { formData } from '@remix-run/form-data-middleware'
+import { logger } from '@remix-run/logger-middleware'
+import { methodOverride } from '@remix-run/method-override-middleware'
+import { session } from '@remix-run/session-middleware'
+import { staticFiles } from '@remix-run/static-middleware'
+import { withServiceProvider } from '@remix-run/router-services-middleware'
+
+import { routes } from './routes.ts'
+import { sessionCookie, sessionStorage } from './utils/session.ts'
+import { uploadHandler } from './utils/uploads.ts'
+import { serviceProvider } from '../services.ts'
+import { uploadsHandler } from './uploads.tsx'
+
+// Handlers will be imported here as we implement them
+import adminHandlers from './admin.tsx'
+// import accountHandlers from './account.tsx'
+import authHandlers from './auth.tsx'
+import cartHandlers from './cart.tsx'
+import accountHandlers from './account.tsx'
+import checkoutHandlers from './checkout.tsx'
+import * as marketingHandlers from './marketing.tsx'
+import booksHandlers from './books.tsx'
+import fragmentsHandlers from './fragments.tsx'
+
+let middleware = []
+
+if (process.env.NODE_ENV === 'development') {
+  middleware.push(logger())
+}
+
+middleware.push(compression())
+middleware.push(
+  staticFiles('./public', {
+    cacheControl: 'no-store, must-revalidate',
+    etag: false,
+    lastModified: false,
+  }),
+)
+middleware.push(formData({ uploadHandler }))
+middleware.push(methodOverride())
+middleware.push(session(sessionCookie, sessionStorage))
+middleware.push(asyncContext())
+middleware.push(withServiceProvider(serviceProvider))
+
+export let router = createRouter({ middleware })
+
+// We'll uncomment these as we implement the handlers
+router.get(routes.uploads, uploadsHandler)
+
+router.map(routes.home, marketingHandlers.home)
+router.map(routes.about, marketingHandlers.about)
+router.map(routes.contact, marketingHandlers.contact)
+router.map(routes.search, marketingHandlers.search)
+
+router.map(routes.fragments, fragmentsHandlers)
+
+router.map(routes.books, booksHandlers)
+router.map(routes.auth, authHandlers)
+router.map(routes.cart, cartHandlers)
+router.map(routes.account, accountHandlers)
+router.map(routes.checkout, checkoutHandlers)
+router.map(routes.admin, adminHandlers)
