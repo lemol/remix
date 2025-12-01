@@ -36,7 +36,7 @@ router.map(routes.home, {
   },
   action: defineRouter({
     middleware: homeActionMiddleware,
-    handler: ({ extra }) => {
+    action: ({ extra }) => {
       return createHtmlResponse(html`
         <html>
           <body>
@@ -57,7 +57,7 @@ let postsMiddleware = use(loadUserInfo())
 
 let postsRouter = defineRouter(routes.posts, {
   middleware: postsMiddleware,
-  handlers: {
+  actions: {
     index({ extra }) {
       return createHtmlResponse(html`
         <html>
@@ -67,7 +67,7 @@ let postsRouter = defineRouter(routes.posts, {
             <div>
               <a href="${routes.home.index.href()}">Back</a>
             </div>
-            <form action="${routes.posts.action.href()}" method="post">
+            <form action="${routes.posts.create.href()}" method="post">
               <input type="text" name="title" />
               <input type="text" name="content" />
               <button type="submit">Submit</button>
@@ -76,13 +76,13 @@ let postsRouter = defineRouter(routes.posts, {
         </html>
       `)
     },
-    action: defineRouter({
+    create: defineRouter({
       middleware: use(
         includeParentExtra(postsMiddleware),
         sampleMiddleware(),
         formDataParser(parser),
       ),
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         console.log(extra.user)
         console.log(extra.sample)
         return createHtmlResponse(html`

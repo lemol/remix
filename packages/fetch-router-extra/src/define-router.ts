@@ -2,22 +2,22 @@ import type {
   RequestContext,
   Route,
   RequestMethod,
-  BuildRouteHandler,
-  RouteHandlers,
+  BuildAction,
+  Controller,
 } from '@remix-run/fetch-router'
 import type { RouteMap } from '@remix-run/fetch-router'
 import type { Params, RoutePattern } from '@remix-run/route-pattern'
 import { type ExtractExtra, type Middleware } from './middleware.ts'
 
 // prettier-ignore
-type RouteHandlersExtra<routes extends RouteMap, extra extends Record<string, any> = {}> =
-  | RouteHandlersExtraWithMiddleware<routes, extra>
-  | RouteHandlersExtraWithoutMiddleware<routes, extra>
+type ControllerExtra<routes extends RouteMap, extra extends Record<string, any> = {}> =
+  | ControllerExtraWithMiddleware<routes, extra>
+  | ControllerExtraWithoutMiddleware<routes, extra>
 
 // prettier-ignore
-type RouteHandlersExtraWithMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = {
-  middleware?: Middleware[]
-  handlers: RouteHandlersExtra<routes, extra>
+type ControllerExtraWithMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = {
+  middleware: Middleware[]
+  actions: ControllerExtra<routes, extra>
 } & (routes extends Record<string, any>
   ? {
       [name in keyof routes as routes extends any ? never : name]?: never
@@ -25,24 +25,24 @@ type RouteHandlersExtraWithMiddleware<routes extends RouteMap, extra extends Rec
   : {})
 
 // prettier-ignore
-type RouteHandlersExtraWithoutMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = routes extends any ?
+type ControllerExtraWithoutMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = routes extends any ?
   ({
     [name in keyof routes]: (
       routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? (
         | ((context: RequestContext<method, Params<pattern>> & { extra: extra }) => Response | Promise<Response>)
         | {
-            middleware?: Middleware[]
-            handler: (
+            middleware: Middleware[]
+            action: (
               context: RequestContext<method, Params<pattern>> & { extra: extra }
             ) => Response | Promise<Response>
           }
       ) :
-      routes[name] extends RouteMap ? RouteHandlersExtra<routes[name], extra> :
+      routes[name] extends RouteMap ? ControllerExtra<routes[name], extra> :
       never
     )
   } & {
     middleware?: never
-    handlers?: never
+    actions?: never
   }) :
   never
 
@@ -57,16 +57,16 @@ type GetParams<R> = R extends string
 type GetMethod<R> = R extends Route<infer M, infer _> ? M : 'ANY'
 
 /**
- * Define a single route handler with type-safe middleware data.
+ * Define a single action with type-safe middleware data.
  *
  * @example
  * ```ts
- * defineRouter(routes.posts.action, {
+ * defineRouter(routes.posts.create, {
  *   middleware: [authMiddleware],
- *   handler: ({ extra }) => {
+ *   action: ({ extra }) => {
  *     // extra.user is fully typed
  *     return new Response('Post created')
- *   }
+ *   },
  * })
  * ```
  */
@@ -77,26 +77,26 @@ export function defineRouter<
   route: route,
   options: {
     middleware: M
-    handler: (
+    action: (
       context: RequestContext<GetMethod<route>, GetParams<route>> & {
         extra: ExtractExtra<M>
       },
     ) => Response | Promise<Response>
   },
-): BuildRouteHandler<GetMethod<route>, route>
+): BuildAction<GetMethod<route>, route>
 /**
- * Define a route tree with type-safe middleware data.
+ * Define a controller with type-safe middleware data.
  *
  * @example
  * ```ts
  * defineRouter(routes.posts, {
  *   middleware: [authMiddleware],
- *   handlers: {
+ *   actions: {
  *     index({ extra }) {
  *       // extra.user is fully typed
  *       return new Response(`Posts for ${extra.user.name}`)
- *     }
- *   }
+ *     },
+ *   },
  * })
  * ```
  */
@@ -104,23 +104,23 @@ export function defineRouter<const M extends readonly Middleware[], routes exten
   routes: routes,
   options: {
     middleware: M
-    handlers: RouteHandlersExtra<routes, ExtractExtra<M>>
+    actions: ControllerExtra<routes, ExtractExtra<M>>
   },
-): RouteHandlers<routes>
+): Controller<routes>
 /**
- * Define a route handler with type-safe middleware data.
+ * Define an action with type-safe middleware data.
  *
- * Middleware data is automatically extracted and made available in the handler's
+ * Middleware data is automatically extracted and made available in the action's
  * `extra` parameter with full type safety.
  *
  * @example
  * ```ts
  * defineRouter({
  *   middleware: [authMiddleware],
- *   handler: ({ extra }) => {
+ *   action: ({ extra }) => {
  *     // extra.user is fully typed from authMiddleware
  *     return new Response(`Hello ${extra.user.name}`)
- *   }
+ *   },
  * })
  * ```
  */
@@ -130,42 +130,42 @@ export function defineRouter<
   pattern extends string = string,
 >(options: {
   middleware: M
-  handler: (
+  action: (
     context: RequestContext<method, Params<pattern>> & { extra: ExtractExtra<M> },
   ) => Response | Promise<Response>
 }): {
   middleware: M
-  handler: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>
+  action: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>
 }
 /**
- * Define routes with type-safe middleware data.
+ * Define actions with type-safe middleware data.
  *
- * Middleware data is automatically extracted and made available in each handler's
+ * Middleware data is automatically extracted and made available in each action's
  * `extra` parameter with full type safety.
  *
  * @example
  * ```ts
  * defineRouter({
  *   middleware: [authMiddleware],
- *   routes: {
+ *   actions: {
  *     'GET /': ({ extra }) => {
  *       // extra.user is fully typed from authMiddleware
  *       return new Response(`Hello ${extra.user.name}`)
- *     }
- *   }
+ *     },
+ *   },
  * })
  * ```
  */
 export function defineRouter<const M extends readonly Middleware[]>(options: {
   middleware: M
-  routes: {
+  actions: {
     [key: string]: (
       context: RequestContext & { extra: ExtractExtra<NoInfer<M>> },
     ) => Response | Promise<Response>
   }
 }): {
   middleware: M
-  routes: Record<string, (context: RequestContext) => Response | Promise<Response>>
+  actions: Record<string, (context: RequestContext) => Response | Promise<Response>>
 }
 export function defineRouter(routeOrOptions: any, options?: any) {
   return options ?? routeOrOptions

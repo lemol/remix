@@ -4,7 +4,7 @@ Extra features for [fetch-router](https://github.com/remix-run/remix/tree/main/p
 
 ## Features
 
-- **Type-safe middleware data**: Automatically extract and type middleware data in route handlers
+- **Type-safe middleware data**: Automatically extract and type middleware data in actions
 - **Middleware composition**: Combine middleware with proper type inference using `use`
 
 ## Installation
@@ -17,48 +17,48 @@ npm install @remix-run/fetch-router-extra
 
 ### defineRouter
 
-The `defineRouter` function enhances type safety of route handlers by automatically extracting middleware data types and making them available in the handler's `extra` parameter.
+The `defineRouter` function enhances type safety of actions by automatically extracting middleware data types and making them available in the action's `extra` parameter.
 
-#### Single Handler
+#### Single Action
 
 ```ts
 import { defineRouter } from '@remix-run/fetch-router-extra'
 
-let action = defineRouter({
+let createPost = defineRouter({
   middleware: [authMiddleware],
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     // extra.user is fully typed from authMiddleware
     console.log(extra.user.name)
     return new Response('Success')
-  }
+  },
 })
 ```
 
-#### Route Tree
+#### Controller
 
-Apply middleware to an entire route tree:
+Apply middleware to an entire controller:
 
 ```ts
-let postsRouter = defineRouter(routes.posts, {
+let postsController = defineRouter(routes.posts, {
   middleware: [authMiddleware],
-  handlers: {
+  actions: {
     index({ extra }) {
-      // extra.user is available in all handlers
+      // extra.user is available in all actions
       return new Response(`Posts for ${extra.user.name}`)
     },
-    action({ extra }) {
+    create({ extra }) {
       return new Response('Post created')
-    }
-  }
+    },
+  },
 })
 ```
 
 #### Single Route
 
 ```ts
-let action = defineRouter(routes.posts.action, {
+let createPost = defineRouter(routes.posts.create, {
   middleware: [authMiddleware],
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     return new Response('Post created')
   },
 })
@@ -78,7 +78,7 @@ defineRouter({
     loggingMiddleware,
     rateLimitMiddleware,
   ),
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     // extra contains combined types from all middleware
     console.log(extra.user.name) // from authMiddleware
     return new Response('Success')
@@ -99,10 +99,10 @@ let postsMiddleware = use(authMiddleware)
 // Child middleware inherits types from parent
 let postsActionMiddleware = use(includeParentExtra(postsMiddleware), formDataParser(schema))
 
-// Handler has access to both auth and formData
+// Action has access to both auth and formData
 defineRouter({
   middleware: postsActionMiddleware,
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     console.log(extra.user.name) // from authMiddleware
     console.log(extra.formData.title) // from formDataParser
     return new Response('Success')
@@ -133,15 +133,15 @@ function createAuthMiddleware(): Middleware<{
 
 ### `defineRouter(options)`
 
-Define a route handler with type-safe middleware data.
+Define an action with type-safe middleware data.
 
 ### `defineRouter(routes, options)`
 
-Define a route tree with type-safe middleware data.
+Define a controller with type-safe middleware data.
 
 ### `defineRouter(route, options)`
 
-Define a single route handler with type-safe middleware data.
+Define a single action with type-safe middleware data.
 
 ### `use(...middleware)`
 

@@ -5,8 +5,8 @@ import { defineRouter } from './define-router.ts'
 import { type Middleware, use, includeParentExtra } from './middleware.ts'
 
 describe('defineRouter', () => {
-  describe('single handler', () => {
-    it('returns middleware and handler', () => {
+  describe('single action', () => {
+    it('returns middleware and action', () => {
       let testMiddleware: Middleware<{ user: string }>[] = [
         (context) => {
           ;(context as any).extra = { user: 'test' }
@@ -15,17 +15,17 @@ describe('defineRouter', () => {
 
       let result = defineRouter({
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           return new Response(`Hello ${extra.user}`)
         },
       })
 
       assert.ok(result.middleware)
-      assert.ok(result.handler)
+      assert.ok(result.action)
       assert.equal(result.middleware, testMiddleware)
     })
 
-    it('handler receives typed extra from middleware', () => {
+    it('action receives typed extra from middleware', () => {
       let testMiddleware: Middleware<{ user: { name: string } }>[] = [
         (context) => {
           ;(context as any).extra = { user: { name: 'John' } }
@@ -34,40 +34,40 @@ describe('defineRouter', () => {
 
       let result = defineRouter({
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           // Type assertion to verify the type is correct
           let userName: string = extra.user.name
           return new Response(`Hello ${userName}`)
         },
       })
 
-      assert.ok(result.handler)
+      assert.ok(result.action)
     })
   })
 
-  describe('route tree', () => {
-    it('returns handlers object', () => {
+  describe('controller', () => {
+    it('returns actions object', () => {
       let testMiddleware: Middleware<{ auth: boolean }>[] = [
         (context) => {
           ;(context as any).extra = { auth: true }
         },
       ]
 
-      // Test that defineRouter accepts route tree structure
+      // Test that defineRouter accepts controller structure
       // The actual type checking is done at compile time
       let result = defineRouter({
         middleware: testMiddleware,
-        handler: ({ extra }) => new Response(`Auth: ${extra.auth}`),
+        action: ({ extra }) => new Response(`Auth: ${extra.auth}`),
       })
 
       assert.ok(result)
       assert.ok(result.middleware)
-      assert.ok(result.handler)
+      assert.ok(result.action)
     })
   })
 
   describe('single route', () => {
-    it('returns handler for specific route', () => {
+    it('returns action for specific route', () => {
       let testMiddleware: Middleware<{ userId: string }>[] = [
         (context) => {
           ;(context as any).extra = { userId: '123' }
@@ -78,7 +78,7 @@ describe('defineRouter', () => {
 
       let result = defineRouter(route, {
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           return new Response(`User: ${extra.userId}`)
         },
       })
@@ -143,7 +143,7 @@ describe('use', () => {
     // Use in defineRouter to verify type safety
     let result = defineRouter({
       middleware: combined,
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // Both types should be available
         let auth: boolean = extra.auth
         let title: string = extra.formData.title
@@ -185,7 +185,7 @@ describe('integration', () => {
     // Inner router with combined middleware
     let innerRouter = defineRouter({
       middleware: combinedMiddleware,
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // Both parent and child extra should be available
         let userId: string = extra.user.id
         let userName: string = extra.user.name
@@ -197,7 +197,7 @@ describe('integration', () => {
 
     assert.ok(innerRouter)
     assert.ok(innerRouter.middleware)
-    assert.ok(innerRouter.handler)
+    assert.ok(innerRouter.action)
   })
 
   it('handles mixed middleware types correctly', () => {
@@ -222,7 +222,7 @@ describe('integration', () => {
 
     let result = defineRouter({
       middleware: [authMiddleware, servicesMiddleware, adminMiddleware],
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // In the failing case, 'extra' might be inferred as the union of extras
         // or just one of them, rather than the intersection.
         // We want to verify that we can access properties from ALL middlewares.
