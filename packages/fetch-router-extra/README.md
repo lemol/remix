@@ -15,16 +15,16 @@ npm install @remix-run/fetch-router-extra
 
 ## Usage
 
-### defineRouter
+### defineAction
 
-The `defineRouter` function enhances type safety of actions by automatically extracting middleware data types and making them available in the action's `extra` parameter.
+The `defineAction` function enhances type safety of actions by automatically extracting middleware data types and making them available in the action's `extra` parameter.
 
 #### Single Action
 
 ```ts
-import { defineRouter } from '@remix-run/fetch-router-extra'
+import { defineAction } from '@remix-run/fetch-router-extra'
 
-let createPost = defineRouter({
+let createPost = defineAction({
   middleware: [authMiddleware],
   action: ({ extra }) => {
     // extra.user is fully typed from authMiddleware
@@ -34,12 +34,25 @@ let createPost = defineRouter({
 })
 ```
 
-#### Controller
-
-Apply middleware to an entire controller:
+#### With Route
 
 ```ts
-let postsController = defineRouter(routes.posts, {
+let createPost = defineAction(routes.posts.create, {
+  middleware: [authMiddleware],
+  action: ({ extra }) => {
+    return new Response('Post created')
+  },
+})
+```
+
+### defineController
+
+The `defineController` function defines a controller with type-safe middleware data for multiple actions:
+
+```ts
+import { defineController } from '@remix-run/fetch-router-extra'
+
+let postsController = defineController(routes.posts, {
   middleware: [authMiddleware],
   actions: {
     index({ extra }) {
@@ -53,17 +66,6 @@ let postsController = defineRouter(routes.posts, {
 })
 ```
 
-#### Single Route
-
-```ts
-let createPost = defineRouter(routes.posts.create, {
-  middleware: [authMiddleware],
-  action: ({ extra }) => {
-    return new Response('Post created')
-  },
-})
-```
-
 ### use
 
 The `use` function combines multiple middleware into a single array with proper type inference for the `extra` data:
@@ -71,7 +73,7 @@ The `use` function combines multiple middleware into a single array with proper 
 ```ts
 import { use } from '@remix-run/fetch-router-extra'
 
-defineRouter({
+defineAction({
   // Combine multiple middleware with type inference
   middleware: use(
     authMiddleware,
@@ -91,7 +93,7 @@ defineRouter({
 Use `includeParentExtra` to inherit extra data types from parent middleware:
 
 ```ts
-import { use, includeParentExtra } from '@remix-run/fetch-router-extra'
+import { use, includeParentExtra, defineAction } from '@remix-run/fetch-router-extra'
 
 // Parent middleware
 let postsMiddleware = use(authMiddleware)
@@ -100,7 +102,7 @@ let postsMiddleware = use(authMiddleware)
 let postsActionMiddleware = use(includeParentExtra(postsMiddleware), formDataParser(schema))
 
 // Action has access to both auth and formData
-defineRouter({
+defineAction({
   middleware: postsActionMiddleware,
   action: ({ extra }) => {
     console.log(extra.user.name) // from authMiddleware
@@ -131,17 +133,21 @@ function createAuthMiddleware(): Middleware<{
 
 ## API Reference
 
-### `defineRouter(options)`
+### `defineAction(options)`
 
 Define an action with type-safe middleware data.
 
-### `defineRouter(routes, options)`
+### `defineAction(route, options)`
 
-Define a controller with type-safe middleware data.
+Define an action for a specific route with type-safe middleware data.
 
-### `defineRouter(route, options)`
+### `defineController(routes, options)`
 
-Define a single action with type-safe middleware data.
+Define a controller with type-safe middleware data for multiple actions.
+
+### `defineController(options)`
+
+Define a controller with inline route definitions.
 
 ### `use(...middleware)`
 

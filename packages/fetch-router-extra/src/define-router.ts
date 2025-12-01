@@ -61,7 +61,7 @@ type GetMethod<R> = R extends Route<infer M, infer _> ? M : 'ANY'
  *
  * @example
  * ```ts
- * defineRouter(routes.posts.create, {
+ * defineAction(routes.posts.create, {
  *   middleware: [authMiddleware],
  *   action: ({ extra }) => {
  *     // extra.user is fully typed
@@ -70,7 +70,7 @@ type GetMethod<R> = R extends Route<infer M, infer _> ? M : 'ANY'
  * })
  * ```
  */
-export function defineRouter<
+export function defineAction<
   const M extends readonly Middleware[],
   route extends string | RoutePattern | Route,
 >(
@@ -85,29 +85,6 @@ export function defineRouter<
   },
 ): BuildAction<GetMethod<route>, route>
 /**
- * Define a controller with type-safe middleware data.
- *
- * @example
- * ```ts
- * defineRouter(routes.posts, {
- *   middleware: [authMiddleware],
- *   actions: {
- *     index({ extra }) {
- *       // extra.user is fully typed
- *       return new Response(`Posts for ${extra.user.name}`)
- *     },
- *   },
- * })
- * ```
- */
-export function defineRouter<const M extends readonly Middleware[], routes extends RouteMap>(
-  routes: routes,
-  options: {
-    middleware: M
-    actions: ControllerExtra<routes, ExtractExtra<M>>
-  },
-): Controller<routes>
-/**
  * Define an action with type-safe middleware data.
  *
  * Middleware data is automatically extracted and made available in the action's
@@ -115,7 +92,7 @@ export function defineRouter<const M extends readonly Middleware[], routes exten
  *
  * @example
  * ```ts
- * defineRouter({
+ * defineAction({
  *   middleware: [authMiddleware],
  *   action: ({ extra }) => {
  *     // extra.user is fully typed from authMiddleware
@@ -124,7 +101,7 @@ export function defineRouter<const M extends readonly Middleware[], routes exten
  * })
  * ```
  */
-export function defineRouter<
+export function defineAction<
   const M extends readonly Middleware[],
   method extends RequestMethod | 'ANY' = RequestMethod | 'ANY',
   pattern extends string = string,
@@ -137,15 +114,42 @@ export function defineRouter<
   middleware: M
   action: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>
 }
+export function defineAction(routeOrOptions: any, options?: any) {
+  return options ?? routeOrOptions
+}
+
 /**
- * Define actions with type-safe middleware data.
+ * Define a controller with type-safe middleware data.
+ *
+ * @example
+ * ```ts
+ * defineController(routes.posts, {
+ *   middleware: [authMiddleware],
+ *   actions: {
+ *     index({ extra }) {
+ *       // extra.user is fully typed
+ *       return new Response(`Posts for ${extra.user.name}`)
+ *     },
+ *   },
+ * })
+ * ```
+ */
+export function defineController<const M extends readonly Middleware[], routes extends RouteMap>(
+  routes: routes,
+  options: {
+    middleware: M
+    actions: ControllerExtra<routes, ExtractExtra<M>>
+  },
+): Controller<routes>
+/**
+ * Define a controller with type-safe middleware data.
  *
  * Middleware data is automatically extracted and made available in each action's
  * `extra` parameter with full type safety.
  *
  * @example
  * ```ts
- * defineRouter({
+ * defineController({
  *   middleware: [authMiddleware],
  *   actions: {
  *     'GET /': ({ extra }) => {
@@ -156,7 +160,7 @@ export function defineRouter<
  * })
  * ```
  */
-export function defineRouter<const M extends readonly Middleware[]>(options: {
+export function defineController<const M extends readonly Middleware[]>(options: {
   middleware: M
   actions: {
     [key: string]: (
@@ -167,6 +171,6 @@ export function defineRouter<const M extends readonly Middleware[]>(options: {
   middleware: M
   actions: Record<string, (context: RequestContext) => Response | Promise<Response>>
 }
-export function defineRouter(routeOrOptions: any, options?: any) {
-  return options ?? routeOrOptions
+export function defineController(routesOrOptions: any, options?: any) {
+  return options ?? routesOrOptions
 }

@@ -2,7 +2,7 @@ import z from 'zod'
 import { html } from '@remix-run/html-template'
 import { createRouter } from '@remix-run/fetch-router'
 import { formData } from '@remix-run/form-data-middleware'
-import { defineRouter, use, includeParentExtra } from '@remix-run/fetch-router-extra'
+import { defineAction, defineController, use, includeParentExtra } from '@remix-run/fetch-router-extra'
 import { createHtmlResponse } from '@remix-run/response/html'
 import { formDataParser, loadUserInfo, sampleMiddleware } from './sample-middlewares.ts'
 
@@ -34,7 +34,7 @@ router.map(routes.home, {
       </html>
     `)
   },
-  action: defineRouter({
+  action: defineAction({
     middleware: homeActionMiddleware,
     action: ({ extra }) => {
       return createHtmlResponse(html`
@@ -55,7 +55,7 @@ router.map(routes.home, {
 
 let postsMiddleware = use(loadUserInfo())
 
-let postsRouter = defineRouter(routes.posts, {
+let postsController = defineController(routes.posts, {
   middleware: postsMiddleware,
   actions: {
     index({ extra }) {
@@ -76,7 +76,7 @@ let postsRouter = defineRouter(routes.posts, {
         </html>
       `)
     },
-    create: defineRouter({
+    create: defineAction({
       middleware: use(
         includeParentExtra(postsMiddleware),
         sampleMiddleware(),
@@ -102,4 +102,4 @@ let postsRouter = defineRouter(routes.posts, {
   },
 })
 
-router.map(routes.posts, postsRouter)
+router.map(routes.posts, postsController)
