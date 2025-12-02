@@ -1,4 +1,4 @@
-import { defineRouter } from '@remix-run/fetch-router-extra'
+import { defineAction } from '@remix-run/fetch-router-extra'
 import { routes } from './routes.ts'
 import { Layout } from './layout.tsx'
 import { requireAuth } from './middleware/auth.ts'
@@ -8,9 +8,9 @@ import adminBooksHandlers from './admin.books.tsx'
 import adminOrdersHandlers from './admin.orders.tsx'
 import adminUsersHandlers from './admin.users.tsx'
 
-const adminIndex = defineRouter(routes.admin.index, {
+const adminIndex = defineAction(routes.admin.index, {
   middleware: [requireAuth(), requireAdmin()],
-  handler: () => {
+  action: () => {
     return render(
       <Layout>
         <h1>Admin Dashboard</h1>

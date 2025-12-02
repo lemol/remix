@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -14,13 +14,13 @@ import { ServiceCatalog } from '../services.ts'
 import type { Book } from '../services.ts'
 
 // Admin Books Index
-const booksIndex = defineRouter(routes.admin.books.index, {
+const booksIndex = defineAction(routes.admin.books.index, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
     withServices(ServiceCatalog.bookService)
   ),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { bookService } = extra.services
     let books = await bookService.getAllBooks()
 
@@ -98,9 +98,9 @@ const booksIndex = defineRouter(routes.admin.books.index, {
 })
 
 // Admin Books New
-const booksNew = defineRouter(routes.admin.books.new, {
+const booksNew = defineAction(routes.admin.books.new, {
   middleware: use(requireAuth(), requireAdmin()),
-  handler: () => {
+  action: () => {
     return render(
       <Layout>
         <h1>Add New Book</h1>
@@ -183,7 +183,7 @@ const booksNew = defineRouter(routes.admin.books.new, {
 })
 
 // Admin Books Create
-const booksCreate = defineRouter(routes.admin.books.create, {
+const booksCreate = defineAction(routes.admin.books.create, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
@@ -203,7 +203,7 @@ const booksCreate = defineRouter(routes.admin.books.create, {
       }),
     ),
   ),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let {
       title,
       author,
@@ -240,9 +240,9 @@ const booksCreate = defineRouter(routes.admin.books.create, {
 })
 
 // Admin Books Edit
-const booksEdit = defineRouter(routes.admin.books.edit, {
+const booksEdit = defineAction(routes.admin.books.edit, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.bookService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { bookService } = extra.services
     let book = await bookService.getBookById(params.bookId)
 
@@ -370,7 +370,7 @@ const booksEdit = defineRouter(routes.admin.books.edit, {
 })
 
 // Admin Books Update
-const booksUpdate = defineRouter(routes.admin.books.update, {
+const booksUpdate = defineAction(routes.admin.books.update, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
@@ -390,7 +390,7 @@ const booksUpdate = defineRouter(routes.admin.books.update, {
       }),
     ),
   ),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { bookService } = extra.services
     let book = await bookService.getBookById(params.bookId)
 
@@ -431,14 +431,14 @@ const booksUpdate = defineRouter(routes.admin.books.update, {
 })
 
 // Admin Books Destroy
-const booksDestroy = defineRouter(routes.admin.books.destroy, {
+const booksDestroy = defineAction(routes.admin.books.destroy, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
     withServices(ServiceCatalog.bookService),
     withFormData(z.object({})), // Empty object just to parse form data if needed, though DELETE usually doesn't have body in this context but RestfulForm sends POST
   ),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { bookService } = extra.services
     await bookService.deleteBook(params.bookId)
 
@@ -447,9 +447,9 @@ const booksDestroy = defineRouter(routes.admin.books.destroy, {
 })
 
 // Admin Books Show
-const booksShow = defineRouter(routes.admin.books.show, {
+const booksShow = defineAction(routes.admin.books.show, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.bookService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { bookService } = extra.services
     let book = await bookService.getBookById(params.bookId)
 

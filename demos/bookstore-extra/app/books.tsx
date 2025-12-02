@@ -1,7 +1,7 @@
-import type { RouteHandlers } from '@remix-run/fetch-router'
+import type { Controller } from '@remix-run/fetch-router'
 import { Frame } from '@remix-run/dom'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 
 import { routes } from './routes.ts'
 import { Layout } from './layout.tsx'
@@ -11,9 +11,9 @@ import { ImageCarousel } from './assets/image-carousel.tsx'
 import { ServiceCatalog } from '../services.ts'
 import type { BookService, Book } from '../services.ts'
 
-const booksIndex = defineRouter(routes.books.index, {
+const booksIndex = defineAction(routes.books.index, {
   middleware: use(loadAuth(), withServices(ServiceCatalog.bookService)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { bookService } = extra.services
     let books: Book[] = await bookService.getAllBooks()
     let genres: string[] = await bookService.getAvailableGenres()
@@ -60,9 +60,9 @@ const booksIndex = defineRouter(routes.books.index, {
   },
 })
 
-const booksGenre = defineRouter(routes.books.genre, {
+const booksGenre = defineAction(routes.books.genre, {
   middleware: use(loadAuth(), withServices(ServiceCatalog.bookService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let genre = params.genre
     let { bookService } = extra.services
     let books: Book[] = await bookService.getBooksByGenre(genre)
@@ -106,9 +106,9 @@ const booksGenre = defineRouter(routes.books.genre, {
   },
 })
 
-const booksShow = defineRouter(routes.books.show, {
+const booksShow = defineAction(routes.books.show, {
   middleware: use(loadAuth(), withServices(ServiceCatalog.bookService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let slug = params.slug
     let { bookService } = extra.services
     let book = await bookService.getBookBySlug(slug)
@@ -208,4 +208,4 @@ export default {
   index: booksIndex,
   genre: booksGenre,
   show: booksShow,
-} satisfies RouteHandlers<typeof routes.books>
+} satisfies Controller<typeof routes.books>

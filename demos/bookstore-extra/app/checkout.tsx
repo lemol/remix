@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -13,9 +13,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { CartService, OrderService, Cart, OrderItem } from '../services.ts'
 
 // Checkout Index Handler
-const checkoutIndex = defineRouter(routes.checkout.index, {
+const checkoutIndex = defineAction(routes.checkout.index, {
   middleware: use(requireAuth(), withServices(ServiceCatalog.cartService)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { user } = extra
 
     let cart = getCurrentCart()
@@ -115,7 +115,7 @@ const checkoutIndex = defineRouter(routes.checkout.index, {
 })
 
 // Checkout Action Handler
-const checkoutAction = defineRouter(routes.checkout.action, {
+const checkoutAction = defineAction(routes.checkout.action, {
   middleware: use(
     requireAuth(),
     withServices(ServiceCatalog.orderService, ServiceCatalog.cartService),
@@ -128,7 +128,7 @@ const checkoutAction = defineRouter(routes.checkout.action, {
       }),
     ),
   ),
-  handler: async ({ session, extra }) => {
+  action: async ({ session, extra }) => {
     let { user } = extra
 
     let cart = getCurrentCart()
@@ -160,9 +160,9 @@ const checkoutAction = defineRouter(routes.checkout.action, {
 })
 
 // Checkout Confirmation Handler
-const checkoutConfirmation = defineRouter(routes.checkout.confirmation, {
+const checkoutConfirmation = defineAction(routes.checkout.confirmation, {
   middleware: use(requireAuth(), withServices(ServiceCatalog.orderService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { user } = extra
 
     let { orderService } = extra.services as { orderService: OrderService }

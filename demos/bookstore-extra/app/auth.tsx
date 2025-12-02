@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -12,9 +12,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { AuthService } from '../services.ts'
 
 // Login Handlers
-const loginIndex = defineRouter(routes.auth.login.index, {
+const loginIndex = defineAction(routes.auth.login.index, {
   middleware: [loadAuth()],
-  handler: ({ session, url }) => {
+  action: ({ session, url }) => {
     let error = session.get('error')
     let formAction = routes.auth.login.action.href(undefined, {
       returnTo: url.searchParams.get('returnTo'),
@@ -73,7 +73,7 @@ const loginIndex = defineRouter(routes.auth.login.index, {
   },
 })
 
-const loginAction = defineRouter(routes.auth.login.action, {
+const loginAction = defineAction(routes.auth.login.action, {
   middleware: use(
     withServices(ServiceCatalog.authService),
     withFormData(
@@ -83,7 +83,7 @@ const loginAction = defineRouter(routes.auth.login.action, {
       }),
     ),
   ),
-  handler: async ({ session, url, extra }) => {
+  action: async ({ session, url, extra }) => {
     let { email, password } = extra.formData
     let returnTo = url.searchParams.get('returnTo')
 
@@ -103,9 +103,9 @@ const loginAction = defineRouter(routes.auth.login.action, {
 })
 
 // Register Handlers
-const registerIndex = defineRouter(routes.auth.register.index, {
+const registerIndex = defineAction(routes.auth.register.index, {
   middleware: [],
-  handler: () => {
+  action: () => {
     return render(
       <Document>
         <div class="card" style="max-width: 500px; margin: 2rem auto;">
@@ -146,7 +146,7 @@ const registerIndex = defineRouter(routes.auth.register.index, {
   },
 })
 
-const registerAction = defineRouter(routes.auth.register.action, {
+const registerAction = defineAction(routes.auth.register.action, {
   middleware: use(
     withServices(ServiceCatalog.authService),
     withFormData(
@@ -157,7 +157,7 @@ const registerAction = defineRouter(routes.auth.register.action, {
       }),
     ),
   ),
-  handler: async ({ session, extra }) => {
+  action: async ({ session, extra }) => {
     let { name, email, password } = extra.formData
     let { authService } = extra.services
 
@@ -194,18 +194,18 @@ const registerAction = defineRouter(routes.auth.register.action, {
 })
 
 // Logout Handler
-const logoutHandler = defineRouter(routes.auth.logout, {
+const logoutHandler = defineAction(routes.auth.logout, {
   middleware: [],
-  handler: ({ session }) => {
+  action: ({ session }) => {
     session.destroy()
     return redirect(routes.home.href())
   },
 })
 
 // Forgot Password Handlers
-const forgotPasswordIndex = defineRouter(routes.auth.forgotPassword.index, {
+const forgotPasswordIndex = defineAction(routes.auth.forgotPassword.index, {
   middleware: [],
-  handler: () => {
+  action: () => {
     return render(
       <Document>
         <div class="card" style="max-width: 500px; margin: 2rem auto;">
@@ -232,7 +232,7 @@ const forgotPasswordIndex = defineRouter(routes.auth.forgotPassword.index, {
   },
 })
 
-const forgotPasswordAction = defineRouter(routes.auth.forgotPassword.action, {
+const forgotPasswordAction = defineAction(routes.auth.forgotPassword.action, {
   middleware: use(
     withServices(ServiceCatalog.authService),
     withFormData(
@@ -241,7 +241,7 @@ const forgotPasswordAction = defineRouter(routes.auth.forgotPassword.action, {
       }),
     ),
   ),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { email } = extra.formData
     let { authService } = extra.services
     let token = await authService.createPasswordResetToken(email)
@@ -279,9 +279,9 @@ const forgotPasswordAction = defineRouter(routes.auth.forgotPassword.action, {
 })
 
 // Reset Password Handlers
-const resetPasswordIndex = defineRouter(routes.auth.resetPassword.index, {
+const resetPasswordIndex = defineAction(routes.auth.resetPassword.index, {
   middleware: [],
-  handler: ({ params, session }) => {
+  action: ({ params, session }) => {
     let token = params.token
     let error = session.get('error')
 
@@ -330,7 +330,7 @@ const resetPasswordIndex = defineRouter(routes.auth.resetPassword.index, {
   },
 })
 
-const resetPasswordAction = defineRouter(routes.auth.resetPassword.action, {
+const resetPasswordAction = defineAction(routes.auth.resetPassword.action, {
   middleware: use(
     withServices(ServiceCatalog.authService),
     withFormData(
@@ -340,7 +340,7 @@ const resetPasswordAction = defineRouter(routes.auth.resetPassword.action, {
       }),
     ),
   ),
-  handler: async ({ session, extra, params }) => {
+  action: async ({ session, extra, params }) => {
     let { password, confirmPassword } = extra.formData
 
     if (password !== confirmPassword) {

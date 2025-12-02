@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -14,9 +14,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { AuthService, User } from '../services.ts'
 
 // Admin Users Index
-const usersIndex = defineRouter(routes.admin.users.index, {
+const usersIndex = defineAction(routes.admin.users.index, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.authService)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { user } = extra
     let { authService } = extra.services
     let users = await authService.getAllUsers()
@@ -88,9 +88,9 @@ const usersIndex = defineRouter(routes.admin.users.index, {
 })
 
 // Admin Users Edit
-const usersEdit = defineRouter(routes.admin.users.edit, {
+const usersEdit = defineAction(routes.admin.users.edit, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.authService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { authService } = extra.services
     let targetUser = await authService.getUserById(params.userId)
 
@@ -154,7 +154,7 @@ const usersEdit = defineRouter(routes.admin.users.edit, {
 })
 
 // Admin Users Update
-const usersUpdate = defineRouter(routes.admin.users.update, {
+const usersUpdate = defineAction(routes.admin.users.update, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
@@ -167,7 +167,7 @@ const usersUpdate = defineRouter(routes.admin.users.update, {
       }),
     ),
   ),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { name, email, role } = extra.formData
     let { authService } = extra.services
 
@@ -182,14 +182,14 @@ const usersUpdate = defineRouter(routes.admin.users.update, {
 })
 
 // Admin Users Destroy
-const usersDestroy = defineRouter(routes.admin.users.destroy, {
+const usersDestroy = defineAction(routes.admin.users.destroy, {
   middleware: use(
     requireAuth(),
     requireAdmin(),
     withServices(ServiceCatalog.authService),
     withFormData(z.object({})),
   ),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { authService } = extra.services
     await authService.deleteUser(params.userId)
 
@@ -198,9 +198,9 @@ const usersDestroy = defineRouter(routes.admin.users.destroy, {
 })
 
 // Admin Users Show
-const usersShow = defineRouter(routes.admin.users.show, {
+const usersShow = defineAction(routes.admin.users.show, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.authService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { authService } = extra.services
     let targetUser = await authService.getUserById(params.userId)
 

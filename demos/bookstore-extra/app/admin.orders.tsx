@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 
@@ -11,9 +11,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { OrderService, Order, OrderItem } from '../services.ts'
 
 // Admin Orders Index
-const ordersIndex = defineRouter(routes.admin.orders.index, {
+const ordersIndex = defineAction(routes.admin.orders.index, {
   middleware: [requireAuth(), requireAdmin()],
-  handler: async () => {
+  action: async () => {
     let orderService = resolveService(ServiceCatalog.orderService)
     let orders = await orderService.getAllOrders()
 
@@ -69,9 +69,9 @@ const ordersIndex = defineRouter(routes.admin.orders.index, {
 })
 
 // Admin Orders Show
-const ordersShow = defineRouter(routes.admin.orders.show, {
+const ordersShow = defineAction(routes.admin.orders.show, {
   middleware: use(requireAuth(), requireAdmin(), withServices(ServiceCatalog.orderService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { orderService } = extra.services
     let order = await orderService.getOrderById(params.orderId)
 

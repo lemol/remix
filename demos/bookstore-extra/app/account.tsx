@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -13,9 +13,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { AuthService, OrderService, Order, OrderItem } from '../services.ts'
 
 // Account Index Handler
-const accountIndex = defineRouter(routes.account.index, {
+const accountIndex = defineAction(routes.account.index, {
   middleware: [requireAuth()],
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     let { user } = extra
 
     return render(
@@ -65,9 +65,9 @@ const accountIndex = defineRouter(routes.account.index, {
 })
 
 // Account Settings Handlers
-const settingsIndex = defineRouter(routes.account.settings.index, {
+const settingsIndex = defineAction(routes.account.settings.index, {
   middleware: [requireAuth()],
-  handler: ({ extra }) => {
+  action: ({ extra }) => {
     let { user } = extra
 
     return render(
@@ -113,7 +113,7 @@ const settingsIndex = defineRouter(routes.account.settings.index, {
   },
 })
 
-const settingsUpdate = defineRouter(routes.account.settings.update, {
+const settingsUpdate = defineAction(routes.account.settings.update, {
   middleware: use(
     requireAuth(),
     withServices(ServiceCatalog.authService),
@@ -125,7 +125,7 @@ const settingsUpdate = defineRouter(routes.account.settings.update, {
       }),
     ),
   ),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { user } = extra
 
     let { name, email, password } = extra.formData
@@ -143,9 +143,9 @@ const settingsUpdate = defineRouter(routes.account.settings.update, {
 })
 
 // Orders Handlers
-const ordersIndex = defineRouter(routes.account.orders.index, {
+const ordersIndex = defineAction(routes.account.orders.index, {
   middleware: use(requireAuth(), withServices(ServiceCatalog.orderService)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let { user } = extra
 
     let { orderService } = extra.services
@@ -206,9 +206,9 @@ const ordersIndex = defineRouter(routes.account.orders.index, {
   },
 })
 
-const ordersShow = defineRouter(routes.account.orders.show, {
+const ordersShow = defineAction(routes.account.orders.show, {
   middleware: use(requireAuth(), withServices(ServiceCatalog.orderService)),
-  handler: async ({ params, extra }) => {
+  action: async ({ params, extra }) => {
     let { user } = extra
 
     let { orderService } = extra.services

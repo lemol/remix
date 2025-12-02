@@ -1,4 +1,4 @@
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
@@ -14,9 +14,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { CartService, BookService, Cart } from '../services.ts'
 
 // Cart Index Handler
-const cartIndex = defineRouter(routes.cart.index, {
+const cartIndex = defineAction(routes.cart.index, {
   middleware: use(loadAuth(), withServices(ServiceCatalog.cartService)),
-  handler: async ({ extra }) => {
+  action: async ({ extra }) => {
     let cart = getCurrentCart()
     let { services, user } = extra
     let { cartService } = services
@@ -132,7 +132,7 @@ const cartIndex = defineRouter(routes.cart.index, {
 })
 
 // Cart API Handlers
-const cartAdd = defineRouter(routes.cart.api.add, {
+const cartAdd = defineAction(routes.cart.api.add, {
   middleware: use(
     loadAuth(),
     withServices(ServiceCatalog.bookService, ServiceCatalog.cartService),
@@ -144,7 +144,7 @@ const cartAdd = defineRouter(routes.cart.api.add, {
       }),
     ),
   ),
-  handler: async ({ session, extra }) => {
+  action: async ({ session, extra }) => {
     if (process.env.NODE_ENV !== 'test') {
       // Simulate network latency
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -177,7 +177,7 @@ const cartAdd = defineRouter(routes.cart.api.add, {
   },
 })
 
-const cartUpdate = defineRouter(routes.cart.api.update, {
+const cartUpdate = defineAction(routes.cart.api.update, {
   middleware: use(
     loadAuth(),
     withServices(ServiceCatalog.bookService, ServiceCatalog.cartService),
@@ -189,7 +189,7 @@ const cartUpdate = defineRouter(routes.cart.api.update, {
       }),
     ),
   ),
-  handler: async ({ extra, session }) => {
+  action: async ({ extra, session }) => {
     let { bookId, quantity, redirect: redirectParam } = extra.formData
     let { cartService } = extra.services
 
@@ -205,7 +205,7 @@ const cartUpdate = defineRouter(routes.cart.api.update, {
   },
 })
 
-const cartRemove = defineRouter(routes.cart.api.remove, {
+const cartRemove = defineAction(routes.cart.api.remove, {
   middleware: use(
     loadAuth(),
     withServices(ServiceCatalog.cartService),
@@ -216,7 +216,7 @@ const cartRemove = defineRouter(routes.cart.api.remove, {
       }),
     ),
   ),
-  handler: async ({ session, extra }) => {
+  action: async ({ session, extra }) => {
     if (process.env.NODE_ENV !== 'test') {
       // Simulate network latency
       await new Promise((resolve) => setTimeout(resolve, 1000))

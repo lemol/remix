@@ -1,6 +1,6 @@
-import type { RouteHandlers } from '@remix-run/fetch-router'
+import type { Controller } from '@remix-run/fetch-router'
 import { resolveService, withServices } from '@remix-run/router-services-middleware'
-import { defineRouter, use } from '@remix-run/fetch-router-extra'
+import { defineAction, use } from '@remix-run/fetch-router-extra'
 
 import { routes } from './routes.ts'
 import { BookCard } from './components/book-card.tsx'
@@ -10,9 +10,9 @@ import { ServiceCatalog } from '../services.ts'
 import type { BookService } from '../services.ts'
 
 export default {
-  bookCard: defineRouter(routes.fragments.bookCard, {
+  bookCard: defineAction(routes.fragments.bookCard, {
     middleware: use(withServices(ServiceCatalog.bookService)),
-    handler: async ({ params, extra }) => {
+    action: async ({ params, extra }) => {
       let slug = params.slug
       let { bookService } = extra.services
       let book = await bookService.getBookBySlug(slug)
@@ -27,4 +27,4 @@ export default {
       return render(<BookCard book={book} inCart={inCart} />)
     },
   }),
-} satisfies RouteHandlers<typeof routes.fragments>
+} satisfies Controller<typeof routes.fragments>
