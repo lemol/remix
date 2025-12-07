@@ -35,9 +35,9 @@
     "@standard-schema/spec": "^1.0.0"
   },
   "devDependencies": {
-    "@remix-run/async-context-middleware": "workspace:*",
-    "@remix-run/fetch-router": "workspace:*",
-    "@remix-run/fetch-router-extra": "workspace:*",
+    "@remix-run/async-context-middleware": "workspace:^",
+    "@remix-run/fetch-router": "workspace:^",
+    "@remix-run/fetch-router-extra": "workspace:^",
     "@types/node": "^24.6.0",
     "typescript": "^5.9.3",
     "zod": "^4.1.13"
