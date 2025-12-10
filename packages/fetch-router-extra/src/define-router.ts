@@ -4,10 +4,21 @@ import type {
   RequestMethod,
   BuildAction,
   Controller,
+  Action,
 } from '@remix-run/fetch-router'
 import type { RouteMap } from '@remix-run/fetch-router'
 import type { Params, RoutePattern } from '@remix-run/route-pattern'
 import { type ExtractExtra, type Middleware } from './middleware.ts'
+
+// Helper type to extract the ControllerWithoutMiddleware variant from Controller
+// prettier-ignore
+type ControllerActions<routes extends RouteMap> = {
+  [name in keyof routes]: (
+    routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? Action<method, pattern> :
+    routes[name] extends RouteMap ? Controller<routes[name]> :
+    never
+  )
+}
 
 // prettier-ignore
 type ControllerExtra<routes extends RouteMap, extra extends Record<string, any> = {}> =
@@ -31,9 +42,9 @@ type ControllerExtraWithoutMiddleware<routes extends RouteMap, extra extends Rec
       routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? (
         | ((context: RequestContext<method, Params<pattern>> & { extra: extra }) => Response | Promise<Response>)
         | {
-            middleware: Middleware[]
+            middleware: readonly Middleware<any, any, any>[]
             action: (
-              context: RequestContext<method, Params<pattern>> & { extra: extra }
+              context: RequestContext<method, Params<pattern>>
             ) => Response | Promise<Response>
           }
       ) :
@@ -140,7 +151,7 @@ export function defineController<const M extends readonly Middleware[], routes e
     middleware: M
     actions: ControllerExtra<routes, ExtractExtra<M>>
   },
-): Controller<routes>
+): { middleware: M; actions: ControllerActions<routes> }
 /**
  * Define a controller with type-safe middleware data.
  *
@@ -163,9 +174,14 @@ export function defineController<const M extends readonly Middleware[], routes e
 export function defineController<const M extends readonly Middleware[]>(options: {
   middleware: M
   actions: {
-    [key: string]: (
-      context: RequestContext & { extra: ExtractExtra<NoInfer<M>> },
-    ) => Response | Promise<Response>
+    [key: string]:
+      | ((
+          context: RequestContext & { extra: ExtractExtra<NoInfer<M>> },
+        ) => Response | Promise<Response>)
+      | {
+          middleware: readonly Middleware[]
+          action: (context: RequestContext) => Response | Promise<Response>
+        }
   }
 }): {
   middleware: M

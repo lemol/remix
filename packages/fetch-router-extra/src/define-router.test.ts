@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 
 import { defineAction, defineController } from './define-router.ts'
 import { type Middleware, use, includeParentExtra } from './middleware.ts'
+import { route } from '@remix-run/fetch-router'
 
 describe('defineAction', () => {
   describe('single action', () => {
@@ -243,5 +244,100 @@ describe('integration', () => {
     })
 
     assert.ok(result)
+  })
+
+  it('works with multiple actions with middleware on actions', () => {
+    let authMiddleware: Middleware<{ user: { name: string } }>[] = [
+      (context) => {
+        ;(context as any).extra = { user: { name: 'Alice' } }
+      },
+    ]
+
+    let loggingMiddleware: Middleware<{ log: (msg: string) => void }>[] = [
+      (context) => {
+        ;(context as any).extra = {
+          ...((context as any).extra || {}),
+          log: (msg: string) => console.log(msg),
+        }
+      },
+    ]
+
+    let action1 = defineAction({
+      middleware: loggingMiddleware,
+      action: ({ extra }) => {
+        extra.log('Action One Executed')
+        return new Response('Action One')
+      },
+    })
+
+    let action2 = defineAction({
+      middleware: [],
+      action: () => {
+        return new Response('Action Two')
+      },
+    })
+
+    let controller = defineController({
+      middleware: authMiddleware,
+      actions: {
+        actionOne: action1,
+        actionTwo: action2,
+      },
+    })
+
+    assert.ok(controller)
+    assert.ok(controller.actions.actionOne)
+    assert.ok(controller.actions.actionTwo)
+  })
+
+  it('works with multiple actions with middleware on actions - defined routes', () => {
+    let routes = route({
+      base: {
+        actionOne: '/action-one',
+        actionTwo: '/action-two/:id',
+      }
+    })
+
+    let authMiddleware: Middleware<{ user: { name: string } }>[] = [
+      (context) => {
+        ;(context as any).extra = { user: { name: 'Alice' } }
+      },
+    ]
+
+    let loggingMiddleware: Middleware<{ log: (msg: string) => void }>[] = [
+      (context) => {
+        ;(context as any).extra = {
+          ...((context as any).extra || {}),
+          log: (msg: string) => console.log(msg),
+        }
+      },
+    ]
+
+    let action1 = defineAction(routes.base.actionOne, {
+      middleware: loggingMiddleware,
+      action: ({ extra }) => {
+        extra.log('Action One Executed')
+        return new Response('Action One')
+      },
+    })
+
+    let action2 = defineAction(routes.base.actionTwo,{
+      middleware: [],
+      action: () => {
+        return new Response('Action Two')
+      },
+    })
+
+    let controller = defineController(routes.base, {
+      middleware: authMiddleware,
+      actions: {
+        actionOne: action1,
+        actionTwo: action2,
+      },
+    })
+
+    assert.ok(controller)
+    assert.ok(controller.actions.actionOne)
+    assert.ok(controller.actions.actionTwo)
   })
 })
