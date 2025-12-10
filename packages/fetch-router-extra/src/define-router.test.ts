@@ -3,7 +3,7 @@ import { describe, it } from 'node:test'
 
 import { defineAction, defineController } from './define-router.ts'
 import { type Middleware, use, includeParentExtra } from './middleware.ts'
-import { route } from '@remix-run/fetch-router'
+import { createRouter, route } from '@remix-run/fetch-router'
 
 describe('defineAction', () => {
   describe('single action', () => {
@@ -339,5 +339,53 @@ describe('integration', () => {
     assert.ok(controller)
     assert.ok(controller.actions.actionOne)
     assert.ok(controller.actions.actionTwo)
+  })
+
+  it('works for nested controllers', () => {
+    let routes = route({
+      nested: {
+        simple: '/nested/simple',
+        deeper: {
+          item1: '/nested/deeper/item1',
+          item2: '/nested/deeper/:itemId',
+        },
+      }
+    })
+
+    let simpleAction = defineAction(routes.nested.simple, {
+      middleware: [],
+      action: () => {
+        return new Response('Nested Simple Action')
+      },
+    })
+    
+    let deeperController = defineController(routes.nested.deeper, {
+      middleware: [],
+      actions: {
+        item1() {
+          return new Response('Nested Deeper Item 1')
+        },
+        item2({ params }) {
+          return new Response('Nested Deeper Item 2: ' + params.itemId)
+        },
+      },
+    })
+    
+    let nestedController = defineController(routes.nested, {
+      middleware: [],
+      actions: {
+        simple: simpleAction,
+        deeper: deeperController,
+      },
+    })
+
+    let router = createRouter()
+    router.map(routes.nested, nestedController)
+    
+    assert.ok(nestedController)
+    assert.ok(nestedController.actions.simple)
+    assert.ok(nestedController.actions.deeper)
+    assert.ok(nestedController.actions.deeper.actions.item1)
+    assert.ok(nestedController.actions.deeper.actions.item2)
   })
 })

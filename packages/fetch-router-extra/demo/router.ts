@@ -103,3 +103,34 @@ let postsController = defineController(routes.posts, {
 })
 
 router.map(routes.posts, postsController)
+
+let nestedMiddleware = use(loadUserInfo())
+
+let simpleAction = defineAction(routes.nested.simple, {
+  middleware: [],
+  action: () => {
+    return new Response('Nested Simple Action')
+  },
+})
+
+let deeperController = defineController(routes.nested.deeper, {
+  middleware: use(includeParentExtra(nestedMiddleware)),
+  actions: {
+    item1({ extra }) {
+      return new Response('Nested Deeper Item 1' + ' User: ' + extra.user.name)
+    },
+    item2({ params }) {
+      return new Response('Nested Deeper Item 2: ' + params.itemId)
+    },
+  },
+})
+
+let nestedController = defineController(routes.nested, {
+  middleware: nestedMiddleware,
+  actions: {
+    simple: simpleAction,
+    deeper: deeperController,
+  },
+})
+
+router.map(routes.nested, nestedController);

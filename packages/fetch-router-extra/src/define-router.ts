@@ -10,12 +10,13 @@ import type { RouteMap } from '@remix-run/fetch-router'
 import type { Params, RoutePattern } from '@remix-run/route-pattern'
 import { type ExtractExtra, type Middleware } from './middleware.ts'
 
-// Helper type to extract the ControllerWithoutMiddleware variant from Controller
+// Helper type to represent the return type of defineController with middleware
+// For nested route maps, this also returns a structure with { middleware, actions }
 // prettier-ignore
 type ControllerActions<routes extends RouteMap> = {
   [name in keyof routes]: (
     routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? Action<method, pattern> :
-    routes[name] extends RouteMap ? Controller<routes[name]> :
+    routes[name] extends RouteMap ? { middleware: Middleware[]; actions: ControllerActions<routes[name]> } :
     never
   )
 }
@@ -27,8 +28,8 @@ type ControllerExtra<routes extends RouteMap, extra extends Record<string, any> 
 
 // prettier-ignore
 type ControllerExtraWithMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = {
-  middleware: Middleware[]
-  actions: ControllerExtra<routes, extra>
+  middleware: readonly Middleware<any, any, any>[]
+  actions: ControllerExtra<routes, extra> | ControllerActions<routes>
 } & (routes extends Record<string, any>
   ? {
       [name in keyof routes as routes extends any ? never : name]?: never
@@ -151,7 +152,7 @@ export function defineController<const M extends readonly Middleware[], routes e
     middleware: M
     actions: ControllerExtra<routes, ExtractExtra<M>>
   },
-): { middleware: M; actions: ControllerActions<routes> }
+): { middleware: Middleware[]; actions: ControllerActions<routes> }
 /**
  * Define a controller with type-safe middleware data.
  *
@@ -184,7 +185,7 @@ export function defineController<const M extends readonly Middleware[]>(options:
         }
   }
 }): {
-  middleware: M
+  middleware: Middleware[]
   actions: Record<string, (context: RequestContext) => Response | Promise<Response>>
 }
 export function defineController(routesOrOptions: any, options?: any) {

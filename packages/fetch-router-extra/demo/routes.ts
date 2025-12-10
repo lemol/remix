@@ -6,4 +6,11 @@ export let routes = route({
     index: '/posts',
     create: { method: 'POST', pattern: '/posts/create' },
   },
+  nested: {
+    simple: '/nested/simple',
+    deeper: {
+      item1: '/nested/deeper/item1',
+      item2: '/nested/deeper/:itemId',
+    },
+  }
 })
