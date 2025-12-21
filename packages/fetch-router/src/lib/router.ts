@@ -3,17 +3,17 @@ import { type Matcher, ArrayMatcher, RoutePattern } from '@remix-run/route-patte
 import { type Middleware, runMiddleware } from './middleware.ts'
 import { raceRequestAbort } from './request-abort.ts'
 import { RequestContext } from './request-context.ts'
-import type { RequestHandler } from './request-handler.ts'
 import type { RequestMethod } from './request-methods.ts'
 import {
   type Controller,
   type Action,
+  type RequestHandler,
   isControllerWithMiddleware,
   isActionWithMiddleware,
 } from './controller.ts'
 import { type RouteMap, Route } from './route-map.ts'
 
-type MatchData = {
+export type MatchData = {
   handler: RequestHandler<any>
   method: RequestMethod | 'ANY'
   middleware: Middleware<any>[] | undefined
@@ -71,7 +71,7 @@ export interface Router {
    *
    * @param input The request input to fetch
    * @param init The request init options
-   * @return The response from the route that matched the request
+   * @returns The response from the route that matched the request
    */
   fetch(input: string | URL | Request, init?: RequestInit): Promise<Response>
   /**
@@ -177,14 +177,14 @@ function noMatchHandler({ url }: RequestContext): Response {
  * Create a new router.
  *
  * @param options Options to configure the router
- * @return The new router
+ * @returns The new router
  */
 export function createRouter(options?: RouterOptions): Router {
   let defaultHandler = options?.defaultHandler ?? noMatchHandler
   let matcher = options?.matcher ?? new ArrayMatcher<MatchData>()
   let globalMiddleware = options?.middleware
 
-  async function dispatch(context: RequestContext): Promise<Response> {
+  function dispatch(context: RequestContext): Promise<Response> {
     for (let match of matcher.matchAll(context.url)) {
       let { handler, method, middleware } = match.data
 
@@ -194,7 +194,6 @@ export function createRouter(options?: RouterOptions): Router {
       }
 
       context.params = match.params
-      context.url = match.url
 
       if (middleware) {
         return runMiddleware(middleware, context, handler)
@@ -298,7 +297,7 @@ export function createRouter(options?: RouterOptions): Router {
   }
 
   return {
-    async fetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
+    fetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
       let request = new Request(input, init)
 
       if (request.signal.aborted) {
@@ -306,11 +305,12 @@ export function createRouter(options?: RouterOptions): Router {
       }
 
       let context = new RequestContext(request)
-      let response = globalMiddleware
-        ? await runMiddleware(globalMiddleware, context, dispatch)
-        : await dispatch(context)
 
-      return response
+      if (globalMiddleware) {
+        return runMiddleware(globalMiddleware, context, dispatch)
+      }
+
+      return dispatch(context)
     },
     get size(): number {
       return matcher.size

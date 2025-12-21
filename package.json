@@ -2,30 +2,36 @@
   "name": "remix-the-web",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.22.0",
+  "packageManager": "pnpm@10.26.0",
   "dependencies": {
     "@typescript/native-preview": "catalog:",
     "eslint": "^9.33.0",
+    "eslint-plugin-jsdoc": "^61.5.0",
     "eslint-plugin-prefer-let": "^4.0.0",
     "prettier": "^3.3.3",
     "tsx": "catalog:",
-    "typescript": "catalog:",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.40.0"
   },
   "engines": {
     "node": ">=22"
   },
   "scripts": {
+    "postinstall": "test -n \"$CI\" || pnpm --filter @remix-run/component exec playwright install",
     "build": "pnpm -r build",
+    "changes:preview": "node ./scripts/changes-preview.js",
+    "changes:validate": "node ./scripts/changes-validate.js",
+    "changes:version": "node ./scripts/changes-version.js",
     "clean": "git clean -fdX -e '!/.env' .",
     "codegen": "pnpm -r run codegen",
     "create-github-release": "node --env-file .env ./scripts/create-github-release.js",
+    "create-github-release:preview": "node ./scripts/create-github-release.js --preview",
+    "docs": "rm -rf docs/api && node docs/generate.ts",
+    "docs:serve": "node docs/server.ts",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
-    "tag-release": "node ./scripts/tag-release.js",
     "test": "pnpm --parallel run test",
-    "typecheck": "pnpm -r typecheck",
-    "view-changes": "node ./scripts/view-changes.js"
+    "typecheck": "pnpm -r typecheck"
   },
   "workspaces": [
     "packages/*"

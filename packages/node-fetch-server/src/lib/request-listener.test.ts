@@ -63,7 +63,7 @@ describe('createRequestListener', () => {
           assert.equal(statusText, 'Created!')
           assert.equal(headers['x-a'], 'A')
           assert.equal(headers['x-b'], 'B')
-        }
+        },
       )
 
       mock.method(res, 'end', () => resolve())
@@ -99,7 +99,7 @@ describe('createRequestListener', () => {
           assert.equal(status, 201)
           assert.equal(headers['x-a'], 'A')
           assert.equal(headers['x-b'], 'B')
-        }
+        },
       )
 
       mock.method(res, 'end', () => resolve())
@@ -184,6 +184,24 @@ describe('createRequestListener', () => {
     })
   })
 
+  it('uses the `:authority` header to construct the URL for http/2 requests', async () => {
+    await new Promise<void>((resolve) => {
+      let handler: FetchHandler = async (request) => {
+        assert.equal(request.url, 'http://example.com/')
+        return new Response('Hello, world!')
+      }
+
+      let listener = createRequestListener(handler)
+      assert.ok(listener)
+
+      let req = createMockRequest({ headers: { ':authority': 'example.com' } })
+      let res = createMockResponse({ req })
+
+      listener(req, res)
+      resolve()
+    })
+  })
+
   it('uses the `host` option to override the `Host` header', async () => {
     await new Promise<void>((resolve) => {
       let handler: FetchHandler = async (request) => {
@@ -234,12 +252,17 @@ describe('createRequestListener', () => {
       assert.ok(listener)
 
       let req = createMockRequest()
+      req.httpVersionMajor = 1
       let res = createMockResponse({ req })
 
-      let headers: string[]
-      mock.method(res, 'writeHead', (_status: number, headersArray: string[]) => {
-        headers = headersArray
-      })
+      let headers: Record<string, string | string[]>
+      mock.method(
+        res,
+        'writeHead',
+        (_status: number, _statusText: string, headersObj: Record<string, string | string[]>) => {
+          headers = headersObj
+        },
+      )
 
       mock.method(res, 'end', () => {
         assert.deepEqual(headers, {
@@ -397,6 +420,7 @@ function createMockRequest({
       method,
       rawHeaders,
       socket,
+      headers,
     },
   ) as http.IncomingMessage
 }
