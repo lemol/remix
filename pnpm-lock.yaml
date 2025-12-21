@@ -183,7 +183,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.6.0
+        version: 24.10.4
       '@typescript/native-preview':
         specifier: 'catalog:'
         version: 7.0.0-dev.20251125.1
@@ -192,7 +192,7 @@ importers:
         version: 0.25.12
       tsx:
         specifier: 'catalog:'
-        version: 4.20.6
+        version: 4.21.0
 
   demos/sse:
     dependencies:
@@ -527,17 +527,16 @@ importers:
         version: 7.0.0-dev.20251125.1
 
   packages/fetch-router-extra:
-    dependencies:
+    devDependencies:
       '@remix-run/fetch-router':
         specifier: workspace:^
         version: link:../fetch-router
-    devDependencies:
       '@remix-run/route-pattern':
         specifier: workspace:^
         version: link:../route-pattern
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -568,7 +567,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
 
   packages/fetch-router/demos/bun:
     dependencies:
@@ -751,17 +750,17 @@ importers:
     dependencies:
       '@standard-schema/spec':
         specifier: ^1.0.0
-        version: 1.0.0
+        version: 1.1.0
     devDependencies:
       '@remix-run/fetch-router':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../fetch-router
       '@remix-run/fetch-router-extra':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../fetch-router-extra
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1076,20 +1075,20 @@ importers:
     dependencies:
       '@standard-schema/spec':
         specifier: ^1.0.0
-        version: 1.0.0
+        version: 1.1.0
     devDependencies:
       '@remix-run/async-context-middleware':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../async-context-middleware
       '@remix-run/fetch-router':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../fetch-router
       '@remix-run/fetch-router-extra':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../fetch-router-extra
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1129,7 +1128,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
 
   packages/router-services-middleware/demos/complete:
     dependencies:
@@ -1163,7 +1162,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^24.6.0
-        version: 24.6.0
+        version: 24.10.4
 
   packages/session:
     devDependencies:
