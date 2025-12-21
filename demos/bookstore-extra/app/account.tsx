@@ -1,6 +1,6 @@
 import { defineAction, use } from '@remix-run/fetch-router-extra'
 import { createRedirectResponse as redirect } from '@remix-run/response/redirect'
-import { resolveService, withServices } from '@remix-run/router-services-middleware'
+import { withServices } from '@remix-run/router-services-middleware'
 import { withFormData } from '@remix-run/form-data-typed-middleware'
 import { z } from 'zod'
 
@@ -10,7 +10,7 @@ import { requireAuth } from './middleware/auth.ts'
 import { render } from './utils/render.ts'
 import { RestfulForm } from './components/restful-form.tsx'
 import { ServiceCatalog } from '../services.ts'
-import type { AuthService, OrderService, Order, OrderItem } from '../services.ts'
+import type { Order, OrderItem, User } from '../services.ts'
 
 // Account Index Handler
 const accountIndex = defineAction(routes.account.index, {
@@ -131,7 +131,7 @@ const settingsUpdate = defineAction(routes.account.settings.update, {
     let { name, email, password } = extra.formData
     let { authService } = extra.services
 
-    let updateData: any = { name, email }
+    let updateData: Partial<User> = { name, email }
     if (password) {
       updateData.password = password
     }
